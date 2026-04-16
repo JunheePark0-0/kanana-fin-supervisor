@@ -1,6 +1,9 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Stock_Agent 전용 패키지 경로만 추가 (루트 `src`와 이름 충돌 방지)
+_STOCK_ROOT = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _STOCK_ROOT)
 
 import argparse
 import asyncio
@@ -9,7 +12,7 @@ from src.Crawling.crawling_main import main as run_crawling
 from src.Agent.agent_main import main as run_agent_debate
 
 
-async def main(ticker: str):
+async def stock_agent_main(ticker: str):
     """상위 에이전트가 호출할 최종 진입 지점"""
     ticker = ticker.upper()
 
@@ -39,4 +42,4 @@ if __name__ == "__main__":
     parser.add_argument("--ticker", type = str, required = True)
     args = parser.parse_args()
 
-    asyncio.run(main(args.ticker))
+    asyncio.run(stock_agent_main(args.ticker))

@@ -198,7 +198,7 @@ def call_kanana_structured(system_prompt: str, user_input: dict, output_schema: 
         return result
 
     except (json.JSONDecodeError, ValidationError) as e:
-        print(f"❌ Structured Output 파싱 실패 [{output_schema.__name__}]: {e}")
+        print(f"❌ Structured Output 1차 파싱 실패 [{output_schema.__name__}]: {e}")
         print(f"원본 응답: {response_text[:300]}")
         
         if Config.ENABLE_LOCAL_LOGGING:
@@ -275,28 +275,6 @@ def _extract_first_json(text: Any) -> dict | None:
 
     # 닫는 }를 끝까지 못 찾은 경우 — 잘린 응답이므로 시작부터 끝까지 반환
     return text[start:].strip()
-
-def _normalize_recommendation(data: Any) -> Any:
-    """recommendation 필드를 스키마 허용값(매수/매도/보류)으로 정규화."""
-    if not isinstance(data, dict):
-        return data
-
-    raw = data.get("recommendation")
-    if raw is None:
-        return data
-
-    text = str(raw).strip()
-    if text in {"매수", "매도", "보류"}:
-        return data
-
-    if "매수" in text:
-        data["recommendation"] = "매수"
-    elif "매도" in text:
-        data["recommendation"] = "매도"
-    elif "보류" in text:
-        data["recommendation"] = "보류"
-
-    return data
 
 def extract_pure_text(raw_text: Any) -> str:
     """
