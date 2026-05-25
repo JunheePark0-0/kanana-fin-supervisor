@@ -1,0 +1,7 @@
+"""Project setup/check entrypoint for CLI users."""
+
+from verify_setup import run_checks
+
+
+if __name__ == "__main__":
+    raise SystemExit(run_checks())
