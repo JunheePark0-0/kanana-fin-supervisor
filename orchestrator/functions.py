@@ -2,7 +2,7 @@ from typing import List, Dict, Optional, Any, Literal
 import yaml
 import os
 import json
-from config import Config
+from config_base import BaseConfig as Config
 
 def load_prompt(prompt_name: str) -> str:
     """Kanana 프롬프트를 불러오는 함수 - 전체 프롬프트를 문자열로 반환"""

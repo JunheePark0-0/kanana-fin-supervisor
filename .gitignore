@@ -1,22 +1,23 @@
-# Report Agent - 승연
+# 공통
+logs/
+data/
+Kanana_Model/
 
-# Legal Agent - 준희
-Legal_Agent/logs
-Legal_Agent/data 
-Legal_Agent/test
-Legal_Agent/database
-Legal_Agent/Kanana_Model
-Legal_Agent/**/ipynb_files/
+# Python 가상환경
+.venv/
+venv/
+env/
 
-# Stock Agent - 준희
-Stock_Agent/logs
-Stock_Agent/data 
-Stock_Agent/test
-Stock_Agent/database
-Stock_Agent/debate
-Stock_Agent/Kanana_Model
-Stock_Agent/**/ipynb_files/
+# Python 캐시
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
 
-# News Agent - 현진
+# 모델 파일
+models/
+*.bin
+*.safetensors
 
-# Trend Agent - 예린
+# 환경변수
+.env

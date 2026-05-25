@@ -1,7 +1,7 @@
 from typing import List, Dict, TypedDict, Optional
 import operator
 
-from src.schemas import UserInput, AgentRequest, AgentResponse, FinalResponse
+from orchestrator.schemas import UserInput, AgentRequest, AgentResponse, FinalResponse
 
 class OrchestratorState(TypedDict, total = False):
     """Agent Orchestrator State"""

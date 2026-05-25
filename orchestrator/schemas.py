@@ -1,6 +1,9 @@
 from typing import List, Dict, Optional, Literal, Any
 from pydantic import BaseModel, Field, ConfigDict
 
+AgentName = Literal["Report Agent", "Legal Agent", "Stock Agent", "News Agent", "Trend Agent"]
+
+
 class UserInput(BaseModel):
     """사용자 입력 형식"""
     query: str = Field(..., description = "The user's question")
