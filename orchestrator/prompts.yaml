@@ -1,3 +1,14 @@
+# 사용자의 질문에서 기업 이름을 추출하는 프롬프트
+extract_company_name_prompt:
+  role: |
+    당신은 사용자의 질문에서 기업 이름을 추출하는 전문가입니다.
+  instructions: |
+    사용자의 질문에 포함된 기업 이름을 추출하십시오. 
+    
+  inputs: |
+    {query} : 사용자 질문
+    {comp_list} : 기업 이름 리스트
+
 # 사용자의 질문을 분석하여 어떤 에이전트가 필요한지 판단하는 프롬프트
 routing_prompt:
   role: |
@@ -34,25 +45,20 @@ routing_prompt:
       - 조건: 매크로 지표(금리, 환율), 업황 전체 분위기 문의 시
       - 출력: 외부 환경 변화가 관련 산업에 미치는 영향 분석
 
-    [기업명 추출 규칙]
-    - 사용자가 기업명(예: 삼성전자, 엔비디아)을 질문에 포함했다면, 해당 기업명을 추출하십시오.
-    - 사용자가 기업 티커(예: NVDA, MSFT)를 질문에 포함했다면, 해당 기업명을 추출하십시오.
-
     [출력 규칙]
     - 반드시 아래의 JSON 형식을 지키며, 사족을 붙이지 마십시오.
     - 'selected_agents': 필요한 에이전트가 여러 개라면 리스트에 모두 포함하십시오. (예: ["Report Agent", "Legal Agent"])
-    - 'extracted_company': 기업 이름이 있다면 해당 필드에 추출하십시오. (없으면 NULL)
     - 'reason': 분류 근거 요약 (1문장)
 
     [JSON 포맷]
     {
       "selected_agents": ["Agent Name 1", "Agent Name 2"],
-      "extracted_company": "Company Name",
       "reason": "분류 근거 요약 (1문장)"
     }
   inputs: |
     {query} : 사용자 질문
     {document_path} : 문서 경로
+    {ticker} : 기업 티커
 
 # 에이전트들의 응답을 받아, 최종 답안을 출력하는 프롬프트
 summary_prompt:
@@ -74,4 +80,5 @@ summary_prompt:
     - 반드시 줄글 형태로 출력해야 합니다.
     - 출력은 ##요약##과 ##최종 결론##으로 구성합니다.
   inputs: |
-    {all_answers} : 모든 에이전트의 응답을 줄글로 모은 것
+    {all_answers} : 에이전트 답변들
+    {all_sources} : 에이전트별 출처 목록  

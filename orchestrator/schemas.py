@@ -1,24 +1,22 @@
 from typing import List, Dict, Optional, Literal, Any
 from pydantic import BaseModel, Field, ConfigDict
 
-AgentName = Literal["Report Agent", "Legal Agent", "Stock Agent", "News Agent", "Trend Agent"]
-
-
 class UserInput(BaseModel):
     """사용자 입력 형식"""
     query: str = Field(..., description = "The user's question")
     document_path: Optional[str] = Field(None, description = "The path of the document (ex. PDF)")
     ticker: Optional[str] = Field(None, description = "The ticker of the company")
 
+AgentName = Literal["Legal Agent", "News Agent", "Report Agent", "Stock Agent", "Trend Agent"]
+
 class AgentRequest(BaseModel):
     """라우팅 에이전트의 결과 형식"""
-    selected_agents: str = Literal["Report Agent", "Legal Agent", "Stock Agent", "News Agent", "Trend Agent"]
-    extracted_company: Optional[str] = Field(None, description = "The company name extracted from the user's question")
+    selected_agents: List[AgentName] = Field(..., description = "The list of selected agents")
     reason: str = Field(..., description = "The reason for selecting the agents")
 
 class AgentResponse(BaseModel):
     """각 에이전트의 결과 형식"""
-    agent_name: str = Literal["Report Agent", "Legal Agent", "Stock Agent", "News Agent", "Trend Agent"]
+    agent_name: AgentName = Field(..., description = "The name of the agent")
     answer: str = Field(..., description = "The answer from each agent")
     sources: List[str] = Field(..., description = "The sources used when generating the answer")
 
@@ -29,8 +27,6 @@ class AgentResponse(BaseModel):
         report.append(f"{self.agent_name}")
         report.append(f"="*30)
         report.append(f"**답변**\n{self.answer}")
-        if self.sources:
-            report.append(f"**참고자료**\n{', '.join(self.sources)}")
         return "\n\n".join(report) if report else "에이전트 결과 도출에 실패했습니다."
 
 class FinalResponse(BaseModel):
