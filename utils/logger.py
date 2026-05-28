@@ -1,22 +1,25 @@
 """
-Kanana_Agent 루트 `src.core.kanana_pipeline` 전용 로거.
-`config.Config`에 ENABLE_LOCAL_LOGGING, LOG_DIR이 정의되어 있어야 합니다.
+Kanana_Agent 루트 공통 로거.
 """
 
 import logging
-from datetime import datetime
 from pathlib import Path
 
-from config_base import BaseConfig as Config
-
+from utils.log_paths import DEFAULT_AGENT_LOG_FILENAME, get_agent_log_run_dir
+from config import BaseConfig as Config
 
 class RealTimeFileHandler(logging.FileHandler):
     def emit(self, record):
         super().emit(record)
         self.flush()
 
-
-def setup_logger(name: str = "Kanana_Orchestrator"):
+def setup_logger(
+    name: str = "Kanana_Orchestrator",
+    *,
+    agent_log_name: str = "orchestrator",
+    log_run_dir: Path | str | None = None,
+    new_folder: bool = False,
+):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     logger.propagate = False
@@ -29,11 +32,9 @@ def setup_logger(name: str = "Kanana_Orchestrator"):
     )
 
     if getattr(Config, "ENABLE_LOCAL_LOGGING", False):
-        log_dir = Path(getattr(Config, "LOG_DIR", "./logs"))
-        log_dir.mkdir(parents=True, exist_ok=True)
-        now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_filename = log_dir / f"orchestrator_{now_str}.log"
-        file_handler = RealTimeFileHandler(log_filename, encoding="utf-8")
+        run_dir = Path(log_run_dir) if log_run_dir else get_agent_log_run_dir(agent_log_name, new_folder = new_folder)
+        log_filename = run_dir / DEFAULT_AGENT_LOG_FILENAME
+        file_handler = RealTimeFileHandler(log_filename, encoding = "utf-8")
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
     else:
