@@ -5,7 +5,7 @@ import time
 
 from qdrant_client import models
 
-from embeddings import get_kanana_response
+from utils.kanana_pipeline import get_kanana_response
 from utils.helpers import (
     clean_fake_urls,
     clean_report_phrases,
@@ -17,10 +17,10 @@ MODEL = None
 TOKENIZER = None
 VECTOR_DB = None
 TAVILY = None
-SEARCH_LOG_PATH = "search_log.jsonl"
+SEARCH_LOG_PATH: str | None = None
 
 
-def init_runtime(model, tokenizer, vector_db, tavily, search_log_path: str):
+def init_runtime(model, tokenizer, vector_db, tavily, search_log_path: str | None):
     global MODEL, TOKENIZER, VECTOR_DB, TAVILY, SEARCH_LOG_PATH
     MODEL = model
     TOKENIZER = tokenizer
@@ -30,7 +30,7 @@ def init_runtime(model, tokenizer, vector_db, tavily, search_log_path: str):
 
 
 def _llm(messages, max_tokens=512, temp=0.3):
-    return get_kanana_response(MODEL, TOKENIZER, messages, max_tokens=max_tokens, temp=temp)
+    return get_kanana_response(messages, max_tokens=max_tokens, temp=temp)
 
 
 def query_rewrite(state):
@@ -198,8 +198,9 @@ def retrieve_and_rerank(state):
         "filter": {"org": extract.get("org"), "date_from": date_from, "date_to": date_to},
         "results": [d.metadata.get("title", "") for d in reranked],
     }
-    with open(SEARCH_LOG_PATH, "a", encoding="utf-8") as f:
-        f.write(json.dumps(log, ensure_ascii=False) + "\n")
+    if SEARCH_LOG_PATH:
+        with open(SEARCH_LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(log, ensure_ascii=False) + "\n")
     return {"internal_docs": reranked}
 
 
