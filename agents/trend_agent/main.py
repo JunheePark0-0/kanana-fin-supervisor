@@ -1524,7 +1524,7 @@ graph = build_graph()
 
 
 def init_vector_db() -> None:
-    """Chroma vector DB 초기화 (in-process 호출용)."""
+    """Chroma vector DB 초기화 (in-process 호출용)"""
     global vector_db
     if vector_db is None:
         vector_db = Chroma(persist_directory=TrendConfig.DB_PATH, embedding_function=get_embeddings())
@@ -1533,7 +1533,10 @@ def init_vector_db() -> None:
 
 
 async def trend_agent_main(question: str) -> dict:
-    """상위 오케스트레이터가 in-process로 호출하는 진입점."""
+    """상위 오케스트레이터가 in-process로 호출하는 진입점"""
+    from trend_logger_setting import init_trend_file_logging
+
+    init_trend_file_logging(new_folder=True)
     init_vector_db()
     inputs = {
         "question": question,

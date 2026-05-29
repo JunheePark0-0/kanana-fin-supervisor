@@ -8,7 +8,8 @@ from langchain_core.prompts import ChatPromptTemplate
 
 def load_prompt(prompt_name: str) -> str:
     """Kanana 프롬프트를 불러오는 함수 - 전체 프롬프트를 문자열로 반환"""
-    with open(f"legal_src/Agent/prompts.yaml", "r", encoding = "utf-8") as f:
+    prompts_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prompts.yaml")
+    with open(prompts_path, "r", encoding = "utf-8") as f:
         prompts = yaml.safe_load(f)
         prompt = prompts.get(prompt_name, {})
     

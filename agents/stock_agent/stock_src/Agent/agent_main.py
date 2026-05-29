@@ -12,8 +12,8 @@ import traceback
 import asyncio
 
 async def main(ticker : str):
-    log_run_dir = get_agent_log_run_dir(StockConfig.AGENT_LOG_NAME, new_folder = True)
     if StockConfig.ENABLE_LOCAL_LOGGING:
+        log_run_dir = get_agent_log_run_dir(StockConfig.AGENT_LOG_NAME, new_folder = True)
         setup_logger(log_run_dir = log_run_dir)
 
     # 모델 초기화 로그를 먼저 보여주기 위해 배너 출력 전에 선로딩

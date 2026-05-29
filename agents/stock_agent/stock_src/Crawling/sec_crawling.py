@@ -2,6 +2,8 @@
 from pathlib import Path
 from typing import Dict, Optional, List
 
+import os
+
 import requests
 import pandas as pd
 

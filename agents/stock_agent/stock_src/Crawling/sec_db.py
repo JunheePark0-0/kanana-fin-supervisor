@@ -162,9 +162,10 @@ class SEC_Database:
         query = "SELECT 1 FROM Filings WHERE parsed_path = ?"
         conn = None
         try:
-            if not Path(db_path).exists():
+            db_file = Path(db_path)
+            if not db_file.is_file():
                 return True
-            conn = sqlite3.connect(db_path)
+            conn = sqlite3.connect(str(db_file))
             cursor = conn.cursor()
             cursor.execute(query, (str(parsed_path),))
             return cursor.fetchone() is None
@@ -179,9 +180,10 @@ class SEC_Database:
         """공시 날짜 기준 정렬"""
         conn = None
         try:
-            if not Path(db_path).exists():
+            db_file = Path(db_path)
+            if not db_file.is_file():
                 return []
-            conn = sqlite3.connect(db_path)
+            conn = sqlite3.connect(str(db_file))
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
 
@@ -206,6 +208,10 @@ class SEC_Database:
 
     def crawl_and_update_sec_db(self, ticker: str, db_path: Path, dates: int = 14):
         """[최종] SEC 공시 데이터 수집, 파싱 후 중복 제거하여 DB에 저장"""
+        db_file = Path(db_path)
+        if db_file.is_dir() and not any(db_file.iterdir()):
+            db_file.rmdir()
+
         crawler = SEC_Crawler()
         ticker = ticker.upper()
         # 데이터 수집
@@ -235,7 +241,8 @@ class SEC_Database:
             print("파싱된 SEC 파일이 없습니다.")
             return False, []
         # 이미 있는 기업이라면
-        if os.path.exists(db_path):
+        db_file = Path(db_path)
+        if db_file.is_file():
             new_sec_paths = [p for p in parsed_paths if self.compare_sec_db(db_path, p)]
             if len(new_sec_paths) == 0:
                 print("새로운 SEC 공시가 없습니다.")

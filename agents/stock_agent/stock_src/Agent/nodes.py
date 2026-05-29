@@ -5,7 +5,7 @@ from pathlib import Path
 from stock_config import StockConfig
 
 from utils.kanana_pipeline import extract_pure_text, call_kanana
-from stock_src.Agent.functions import load_prompt, create_agent, call_kanana_structured, format_sources_block, extract_used_arguments, unique_sources
+from stock_src.Agent.functions import load_prompt, create_agent, call_kanana_structured, format_sources_block, extract_used_arguments, unique_sources, build_stock_debate_report_rmd
 from stock_src.Agent.states import DebateAgentState
 from stock_src.Agent.schemas import ConsensusOutput
 from stock_src.Agent.tools import search_recent_news, search_recent_filings, read_news_content, read_parsed_filing
@@ -14,7 +14,7 @@ from stock_utils.logger import log_agent_action
 
 def optimistic_initial_node(state : DebateAgentState):
     """
-    낙관론자 에이전트: 긍정적인 관점에서 시장을 분석하고 의견을 제시합니다.
+    낙관론자 에이전트: 긍정적인 관점에서 시장을 분석하고 의견을 제시
     """
     ticker = state["ticker"]
     log_agent_action("Optimist Initial Node Start", {"ticker": state["ticker"]})
@@ -50,7 +50,7 @@ def optimistic_initial_node(state : DebateAgentState):
 
 def pessimistic_initial_node(state : DebateAgentState):
     """
-    비관론자 에이전트: 부정적인 관점에서 시장을 분석하고 의견을 제시합니다.
+    비관론자 에이전트: 부정적인 관점에서 시장을 분석하고 의견을 제시
     """
     ticker = state["ticker"]
     print(f"\n☹️ [비관론자] 초기 의견 도출 중...")
@@ -167,7 +167,7 @@ def optimistic_debate_node(state: DebateAgentState):
 
 def pessimistic_debate_node(state: DebateAgentState):
     """
-    비관론자 토론 진행 중
+    비관론자 토론 진행 중 : 낙관론자의 논리를 반박하고 부정적인 관점을 보강
     """
     turn = state.get("turn_count", 0)
     ticker = state["ticker"]
@@ -267,7 +267,7 @@ def should_continue_node(state: DebateAgentState):
 
 def summary_node(state: DebateAgentState):
     """
-    중재자 에이전트: 토론 내용을 종합하여 최종 결론을 내립니다.
+    중재자 에이전트: 토론 내용을 종합하여 최종 결론 도출
     """
     print("\n😐 [중재자] ------------------")
     ticker = state["ticker"]
@@ -313,32 +313,31 @@ def summary_node(state: DebateAgentState):
 
 def save_debate_node(state : DebateAgentState):
     """
-    토론 기록과 최종 결론을 txt 파일로 저장
+    토론 기록과 최종 결론을 rmd 파일로 저장
     """
+    if not StockConfig.ENABLE_LOCAL_LOGGING:
+        return state
+
     print("\n[System] 결과 저장 중...")
     ticker = state["ticker"]
     all_sources = unique_sources(state.get("sources", []))
-    sources_text = format_sources_block(all_sources)
+    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     debate_path = get_agent_log_run_dir(StockConfig.AGENT_LOG_NAME)
-    debate_path.mkdir(parents=True, exist_ok=True)
-    full_report = [
-        f"{'='*50}",
-        f" Multi-Agent Investment Analysis Report: {ticker}",
-        f" Generated At: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-        f"{'='*50}",
-        "\n[1. Optimist Initial Opinion]", state.get("optimist_initial", ""),
-        "\n[2. Pessimist Initial Opinion]", state.get("pessimist_initial", ""),
-        "\n[3. Full Debate History]", "\n".join(state.get("debate_history", [])),
-        "\n[4. Final Consensus Report]", state.get("final_consensus", "No consensus reached."),
-    ]
-    if sources_text:
-        full_report.extend(["\n[5. References]", sources_text])
-    full_report.append(f"\n{'='*50}")
+    debate_path.mkdir(parents = True, exist_ok = True)
     try:
-        report_content = "\n".join(full_report)
-        with open(debate_path / "full_report.txt", "w", encoding = "utf-8") as f:
+        report_content = build_stock_debate_report_rmd(
+            ticker = ticker,
+            generated_at = generated_at,
+            optimist_initial = state.get("optimist_initial", ""),
+            pessimist_initial = state.get("pessimist_initial", ""),
+            debate_history = state.get("debate_history", []),
+            final_consensus = state.get("final_consensus", "No consensus reached."),
+            sources = all_sources,
+        )
+        report_file = debate_path / "full_report.rmd"
+        with open(report_file, "w", encoding = "utf-8") as f:
             f.write(report_content)
-        print(f"[System] '{ticker}' 토론 결과 저장 완료: {debate_path / 'full_report.txt'}")
+        print(f"[System] '{ticker}' 토론 결과 저장 완료: {report_file}")
     except Exception as e:
         print(f"[System] 토론 결과 저장 실패: {e}")
     return state    

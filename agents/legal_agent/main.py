@@ -37,6 +37,7 @@ async def legal_agent_main(query: str, document_path:str = None):
     print("=" * 60)
     
     # 로컬 로깅 설정에 따라 logger 재설정
+    log_run_dir = None
     if LegalConfig.ENABLE_LOCAL_LOGGING:
         from utils.log_paths import create_agent_log_run_dir
 
@@ -74,13 +75,24 @@ async def legal_agent_main(query: str, document_path:str = None):
     })
 
     answer = None
-    if result.get("answer"):
-        answer = result.get("answer").answer
+    answer_output = result.get("answer")
+    if answer_output:
+        answer = answer_output.answer
         if LegalConfig.ENABLE_LOCAL_LOGGING:
             app_logger.logger.info("\n" + "=" * 30)
             app_logger.logger.info("[최종 답변]")
             app_logger.logger.info(f"\n{answer}")
             app_logger.logger.info("\n" + "=" * 30)
+
+            from legal_utils.report_rmd import save_legal_final_report_rmd
+
+            report_path = save_legal_final_report_rmd(
+                query = query,
+                document_path = document_path,
+                answer = answer_output,
+                log_run_dir = log_run_dir,
+            )
+            log_agent_action("final_response 저장", {"path": str(report_path)})
 
     if LegalConfig.ENABLE_LOCAL_LOGGING:
         from legal_utils.logger import log_conversation

@@ -36,9 +36,8 @@ class TrendConfig(BaseConfig):
 
     @classmethod
     def ensure_dirs(cls):
-        """필요한 디렉토리 자동 생성"""
+        """필요한 데이터 디렉터리만 생성 (로그 폴더는 실행 시에만 생성)"""
         os.makedirs(cls.DATA_DIR, exist_ok=True)
-        os.makedirs(cls.agent_log_root(cls.AGENT_LOG_NAME), exist_ok=True)
 
 
 if not TrendConfig.TAVILY_API_KEY:

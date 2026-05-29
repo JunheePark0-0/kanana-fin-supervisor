@@ -27,15 +27,22 @@ class GetContext:
         """
         티커별 DB 파일 경로를 반환.
         기존 저장 규칙(/database/.../<TICKER>)을 우선 사용하고,
-        없으면 .db 확장자 파일도 허용합니다.
+        없으면 .db 확장자 파일도 허용
         """
         ticker = ticker.upper()
         direct_path = base_path / ticker
-        if direct_path.exists():
+        if direct_path.is_file():
             return direct_path
 
         db_path = base_path / f"{ticker}.db"
-        return db_path
+        if db_path.is_file():
+            return db_path
+
+        # 빈 폴더면 제거 후 파일 경로 사용
+        if direct_path.is_dir() and not any(direct_path.iterdir()):
+            direct_path.rmdir()
+
+        return direct_path
 
     def _run_query(self, db_path : str, query : str, params : tuple) -> List[Dict]:
         try:

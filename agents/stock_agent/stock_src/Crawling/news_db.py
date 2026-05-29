@@ -214,7 +214,10 @@ class News_Database:
         query = "SELECT 1 FROM Articles WHERE html = ?"
         conn = None
         try:
-            conn = sqlite3.connect(db_path)
+            db_file = Path(db_path)
+            if not db_file.is_file():
+                return True
+            conn = sqlite3.connect(str(db_file))
             cursor = conn.cursor()
             # 쿼리 실행
             cursor.execute(query, (html_path,))
@@ -241,7 +244,10 @@ class News_Database:
         """
         conn = None
         try:
-            conn = sqlite3.connect(db_path)
+            db_file = Path(db_path)
+            if not db_file.is_file():
+                return []
+            conn = sqlite3.connect(str(db_file))
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             
@@ -271,6 +277,10 @@ class News_Database:
         Returns:
             tuple: (success: bool, new_html_paths: list) - 성공 여부와 새로운 HTML 경로 리스트
         """
+        db_file = Path(db_path)
+        if db_file.is_dir() and not any(db_file.iterdir()):
+            db_file.rmdir()
+
         news_crawler = News_Crawler()
         # 일단 데이터 수집해오고
         try:
@@ -283,7 +293,8 @@ class News_Database:
             return False, []
 
         # 모아둔 html이랑 기존 db 비교해서 새로운 뉴스만 본문 수집하기
-        if os.path.exists(db_path): # 이미 존재하는 db라면, 즉 크롤링 결과가 이미 존재한다면
+        db_file = Path(db_path)
+        if db_file.is_file(): # 이미 존재하는 db라면, 즉 크롤링 결과가 이미 존재한다면
             new_html_paths = [path for path in html_paths if self.compare_news_db(db_path, path) == True]
             if len(new_html_paths) == 0:
                 print("새로운 뉴스가 없습니다. 크롤링을 종료합니다.")

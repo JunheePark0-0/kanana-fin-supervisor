@@ -34,11 +34,31 @@ def setup_logger(
         file_handler = RealTimeFileHandler(log_filename, encoding = 'utf-8')
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
+    else:
+        stream = logging.StreamHandler()
+        stream.setFormatter(formatter)
+        logger.addHandler(stream)
     
     globals()["logger"] = logger
     return logger
 
-logger = setup_logger()
+
+def _console_logger(name: str = "legal_agent") -> logging.Logger:
+    """import 시점에는 콘솔만 사용하고, 파일 로그는 에이전트 실행 시 setup_logger로 설정"""
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+    if not logger.handlers:
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        stream = logging.StreamHandler()
+        stream.setFormatter(formatter)
+        logger.addHandler(stream)
+    return logger
+
+
+logger = _console_logger()
 
 def log_conversation(user_message: str, ai_response: str, session_id: str = None):
     """대화 로그 기록"""

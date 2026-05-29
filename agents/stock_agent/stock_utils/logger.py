@@ -36,9 +36,13 @@ def setup_logger(
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
     
+    globals()["logger"] = logger
     return logger
 
-logger = setup_logger()
+
+logger = logging.getLogger("stock_agent")
+logger.setLevel(logging.INFO)
+logger.propagate = False
 
 def log_conversation(user_message: str, ai_response: str, session_id: str = None):
     """대화 로그 기록"""

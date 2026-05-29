@@ -9,6 +9,7 @@ from config import BaseConfig
 
 LOG_RUN_TIMESTAMP_FORMAT = "%Y%m%d_%H%M%S"
 DEFAULT_AGENT_LOG_FILENAME = "agent.log"
+ORCHESTRATOR_FINAL_RESPONSE_FILENAME = "final_response.rmd"
 
 _run_dirs: dict[str, Path] = {}
 
@@ -21,7 +22,7 @@ def create_agent_log_run_dir(
     agent_name: str,
     timestamp: str | None = None,
 ) -> Path:
-    """실행마다 logs/{agent_name}/{timestamp}/ 디렉터리를 생성합니다."""
+    """실행마다 logs/{agent_name}/{timestamp}/ 디렉터리 생성"""
     ts = timestamp or datetime.now().strftime(LOG_RUN_TIMESTAMP_FORMAT)
     run_dir = agent_log_root(agent_name) / ts
     run_dir.mkdir(parents = True, exist_ok = True)
@@ -29,7 +30,7 @@ def create_agent_log_run_dir(
 
 
 def get_agent_log_run_dir(agent_name: str, *, new_folder: bool = False) -> Path:
-    """프로세스 내 동일 에이전트는 같은 run 디렉터리를 재사용합니다."""
+    """프로세스 내 동일 에이전트는 같은 run 디렉터리 재사용"""
     if new_folder or agent_name not in _run_dirs:
         _run_dirs[agent_name] = create_agent_log_run_dir(agent_name)
     return _run_dirs[agent_name]

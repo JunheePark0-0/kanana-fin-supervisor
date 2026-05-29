@@ -28,7 +28,7 @@ class StockConfig(BaseConfig):
     SEC_FILE_PATH = BaseConfig.resolve_data_path("stock_data", "SEC")
     SEC_DB_PATH = BaseConfig.resolve_data_path("stock_data", "database", "SEC")
 
-    MAX_NEWS_COUNT = 20 # 수집할 뉴스 최대 개수
+    MAX_NEWS_COUNT = 10 # 수집할 뉴스 최대 개수
     MAX_SEC_DAYS = 14 # 수집할 SEC 일수
 
     # ============================================================================
@@ -45,7 +45,22 @@ class StockConfig(BaseConfig):
         "AAPL": "Apple",
         "GOOG": "Google",
         "AMZN": "Amazon",
-    }
+        "INTC": "Intel",
+        "QCOM": "Qualcomm",
+        "ORCL": "Oracle",
+        "NFLX": "Netflix",
+        "SPOT": "Spotify",
+        "WFC": "Wells Fargo",
+        "BLK": "BlackRock",
+        "V": "Visa",
+        "MA": "Mastercard",
+        "WMT": "Walmart",
+        "TGT": "Target",
+        "COST": "Costco",
+        "NKE": "Nike",
+        "SBUX": "Starbucks",
+        "MCD": "McDonald's",
+        }
 
     @classmethod
     def get_config_summary(cls):

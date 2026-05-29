@@ -5,7 +5,11 @@ Kanana_Agent 루트 공통 로거.
 import logging
 from pathlib import Path
 
-from utils.log_paths import DEFAULT_AGENT_LOG_FILENAME, get_agent_log_run_dir
+from utils.log_paths import (
+    DEFAULT_AGENT_LOG_FILENAME,
+    ORCHESTRATOR_FINAL_RESPONSE_FILENAME,
+    get_agent_log_run_dir,
+)
 from config import BaseConfig as Config
 
 class RealTimeFileHandler(logging.FileHandler):
@@ -64,3 +68,13 @@ def log_agent_action(action: str, details: dict = None):
     if details:
         log_msg += f" - Details: {details}"
     logger.info(log_msg)
+
+
+def save_orchestrator_final_response(content: str) -> Path | None:
+    """오케스트레이터 run 디렉터리에 final_response.rmd를 저장합니다."""
+    if not getattr(Config, "ENABLE_LOCAL_LOGGING", False):
+        return None
+    run_dir = get_agent_log_run_dir("orchestrator")
+    output_path = run_dir / ORCHESTRATOR_FINAL_RESPONSE_FILENAME
+    output_path.write_text(content, encoding = "utf-8")
+    return output_path

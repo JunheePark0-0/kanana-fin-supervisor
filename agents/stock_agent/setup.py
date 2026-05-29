@@ -1,14 +1,12 @@
-﻿import subprocess
-import sys
-import shutil
-from pathlib import Path
+﻿from pathlib import Path
 
 from stock_config import StockConfig
+from utils.selenium_runtime import ensure_linux_selenium_runtime
 
 
 def download_kanana(model_name: str, save_dir: Path) -> None:
     """
-    Hugging Face에서 Kanana 모델을 다운로드하는 함수 (최초 1회 실행).
+    Hugging Face에서 Kanana 모델을 다운로드하는 함수 (최초 1회 실행)
     """
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -25,7 +23,7 @@ def download_kanana(model_name: str, save_dir: Path) -> None:
 
 def has_local_kanana(save_dir: Path) -> bool:
     """
-    로컬 모델 폴더에 필수 파일이 있는지 확인합니다.
+    로컬 모델 폴더에 필수 파일이 있는지 확인
     """
     required_files = [
         save_dir / "config.json",
@@ -36,7 +34,7 @@ def has_local_kanana(save_dir: Path) -> bool:
 
 def ensure_kanana_model() -> None:
     """
-    Config에서 model_name, save_dir를 가져와 로컬 모델 존재 여부를 확인하고 필요 시 다운로드합니다.
+    Config에서 model_name, save_dir를 가져와 로컬 모델 존재 여부를 확인하고 필요 시 다운로드
     """
     model_name = StockConfig.KANANA_MODEL_NAME
     save_dir = Path(StockConfig.KANANA_MODEL_PATH)
@@ -51,7 +49,7 @@ def ensure_kanana_model() -> None:
     print("✅ 모델 준비 완료")
 
 def ensure_env_file() -> None:
-    """루트 .env에 SEC 크롤링용 USER_EMAIL이 설정되어 있는지 확인합니다."""
+    """루트 .env에 SEC 크롤링용 USER_EMAIL이 설정되어 있는지 확인"""
     from stock_config import StockConfig
 
     if not StockConfig.USER_EMAIL:
@@ -60,48 +58,6 @@ def ensure_env_file() -> None:
             "프로젝트 루트 .env 파일에 USER_EMAIL을 설정해주세요."
         )
 
-
-def _run_cmd(cmd: list[str]) -> None:
-    """명령 실행 헬퍼 (실패 시 예외 발생)."""
-    subprocess.run(cmd, check = True)
-
-
-def ensure_linux_selenium_runtime() -> None:
-    """
-    Linux 환경의 경우, Selenium 실행에 필요한 브라우저/라이브러리/패키지를 설치합니다.
-    """
-    if not sys.platform.startswith("linux"):
-        print("Linux 환경이 아니므로 Selenium 런타임 설치를 건너뜁니다.")
-        return
-
-    print("Linux Selenium 런타임 점검을 시작합니다.")
-
-    if not shutil.which("apt-get"):
-        print("apt-get이 없어 시스템 패키지 설치를 건너뜁니다.")
-    else:
-        _run_cmd(["apt-get", "update"])
-
-        # Chrome/Chromium 런타임 의존 라이브러리 설치 (요청 반영)
-        try:
-            _run_cmd([
-                "apt-get", "install", "-y",
-                "libatk1.0-0", "libatk-bridge2.0-0", "libcups2", "libdrm2", "libxkbcommon0",
-                "libxcomposite1", "libxdamage1", "libxfixes3", "libxrandr2", "libgbm1", "libgtk-3-0",
-                "libasound2t64",
-            ])
-        except subprocess.CalledProcessError:
-            _run_cmd(["apt-get", "install", "-y", "libasound2"])
-
-        try:
-            # Ubuntu/Debian 계열: chromium-browser가 있는 경우
-            _run_cmd(["apt-get", "install", "-y", "chromium-browser", "libnss3", "libnspr4"])
-        except subprocess.CalledProcessError:
-            # 일부 배포판은 chromium 패키지명만 제공합니다.
-            _run_cmd(["apt-get", "install", "-y", "chromium", "libnss3", "libnspr4"])
-
-    # Selenium + 드라이버 매니저 파이썬 패키지 설치
-    _run_cmd([sys.executable, "-m", "pip", "install", "-U", "selenium", "webdriver-manager"])
-    print("✅ Linux Selenium 런타임 설치 완료")
 
 def main() -> None:
     print("초기 환경 점검을 시작합니다.")

@@ -34,12 +34,12 @@ async def main(ticker : str):
     print(f"🔍 [{ticker}] 뉴스 + SEC 데이터 수집기 시작")
     print(f"{'='*60}")
 
-    # 1. DB 경로 설정
-    news_db_path = Path(NEWS_DB_PATH) / f"{ticker}"
-    sec_db_path = Path(SEC_DB_PATH) / f"{ticker}"
+    # 1. DB 경로 설정 
+    news_db_path = Path(NEWS_DB_PATH) / ticker
+    sec_db_path = Path(SEC_DB_PATH) / ticker
 
-    ensure_directory(news_db_path)
-    ensure_directory(sec_db_path)
+    ensure_directory(Path(NEWS_DB_PATH))
+    ensure_directory(Path(SEC_DB_PATH))
     
     # 2. 뉴스 크롤러 및 DB
     news_crawler = News_Crawler()

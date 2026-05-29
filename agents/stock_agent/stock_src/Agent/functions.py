@@ -86,10 +86,11 @@ def _collect_sources(
 
 def load_prompt(prompt_name: str, **kwargs) -> str:
     """
-    prompts.yaml에서 프롬프트를 로드하여, 문자열로 반환합니다.
+    prompts.yaml에서 프롬프트를 로드하여, 문자열로 반환
     (**kwargs : 프롬프트에서 비어있는 부분(ex. ticker, history 등)을 채워주기 위함)
     """
-    with open(f"stock_src/Agent/prompts.yaml", "r", encoding = "utf-8") as f:
+    prompts_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prompts.yaml")
+    with open(prompts_path, "r", encoding = "utf-8") as f:
         prompts = yaml.safe_load(f)
         prompt = prompts.get(prompt_name, {})
 
@@ -486,6 +487,126 @@ def format_sources_block(sources: List[dict]) -> str:
             filed_date = item.get("filed_date", "")
             lines.append(f"- {form} ({filed_date})")
     return "\n".join(lines)
+
+
+def format_sources_block_rmd(sources: List[dict]) -> str:
+    """출처를 R Markdown용 마크다운으로 포맷"""
+    news = [s for s in sources if s.get("source_type") == "news"]
+    filings = [s for s in sources if s.get("source_type") == "filing"]
+    if not news and not filings:
+        return ""
+
+    lines = ["## 참고자료", ""]
+    if news:
+        lines.extend(["### 뉴스", ""])
+        for item in news:
+            title = item.get("title") or "제목 없음"
+            url = item.get("url", "")
+            lines.append(f"- [{title}]({url})" if url else f"- {title}")
+        lines.append("")
+    if filings:
+        lines.extend(["### 공시", ""])
+        for item in filings:
+            form = item.get("form", "")
+            filed_date = item.get("filed_date", "")
+            lines.append(f"- {form} ({filed_date})")
+    return "\n".join(lines).rstrip()
+
+
+def format_debate_history_rmd(debate_history: List[str]) -> str:
+    """토론 턴별로 R Markdown 소제목을 붙여 포맷"""
+    import re
+
+    text = "\n\n".join(entry.strip() for entry in debate_history if entry and entry.strip())
+    if not text:
+        return "_토론 기록 없음_"
+
+    turn_pattern = re.compile(
+        r"^(?P<role>낙관론자|비관론자)\(Turn (?P<num>\d+)\):\s*",
+        re.MULTILINE,
+    )
+    matches = list(turn_pattern.finditer(text))
+    if not matches:
+        return text
+
+    sections: List[str] = []
+    for index, match in enumerate(matches):
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        body = text[start:end].strip()
+        role = match.group("role")
+        turn_num = match.group("num")
+        sections.append(f"### {role} (Turn {turn_num})\n\n{body}")
+
+    return "\n\n".join(sections)
+
+
+def build_stock_debate_report_rmd(
+    *,
+    ticker: str,
+    generated_at: str,
+    optimist_initial: str,
+    pessimist_initial: str,
+    debate_history: List[str],
+    final_consensus: str,
+    sources: List[dict] | None = None,
+) -> str:
+    """Stock Agent 토론 결과를 R Markdown 문서로 조합"""
+    title = f"Multi-Agent Investment Analysis Report: {ticker}"
+    yaml_header = yaml.safe_dump(
+        {
+            "title": title,
+            "date": generated_at,
+            "lang": "ko-KR",
+            "output": {
+                "html_document": {
+                    "toc": True,
+                    "toc_float": True,
+                }
+            },
+        },
+        allow_unicode = True,
+        sort_keys = False,
+    ).strip()
+
+    consensus = (final_consensus or "No consensus reached.").strip()
+    main_consensus, _, _ = consensus.partition("\n## 참고자료")
+    main_consensus = main_consensus.rstrip()
+    sources_rmd = format_sources_block_rmd(sources or [])
+    if sources_rmd:
+        consensus = f"{main_consensus}\n\n{sources_rmd}"
+    else:
+        consensus = main_consensus or consensus
+
+    sections = [
+        "---",
+        yaml_header,
+        "---",
+        "",
+        f"# {title}",
+        "",
+        f"**Generated At:** {generated_at}  ",
+        f"**Ticker:** {ticker}",
+        "",
+        "---",
+        "",
+        "## 1. Optimist Initial Opinion",
+        "",
+        (optimist_initial or "_내용 없음_").strip(),
+        "",
+        "## 2. Pessimist Initial Opinion",
+        "",
+        (pessimist_initial or "_내용 없음_").strip(),
+        "",
+        "## 3. Full Debate History",
+        "",
+        format_debate_history_rmd(debate_history),
+        "",
+        "## 4. Final Consensus Report",
+        "",
+        consensus,
+    ]
+    return "\n".join(sections).rstrip() + "\n"
 
 
 def _build_agent_output(agent_role: str, text: str, tool_calls: list, sources: list):
