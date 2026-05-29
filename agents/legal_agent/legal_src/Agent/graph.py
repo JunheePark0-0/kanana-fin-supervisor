@@ -1,14 +1,14 @@
 from langgraph.graph import StateGraph, END, START
 
-from src.Agent.states import LegalAgentState
-from src.Agent.functions import (
+from legal_src.Agent.states import LegalAgentState
+from legal_src.Agent.functions import (
     route_by_input_type,
     route_after_document_parsing,
     route_by_enough_context,
     route_by_enough_answer,
     should_regenerate,
 )
-from src.Agent.nodes import (
+from legal_src.Agent.nodes import (
     routing_node,
     query_rewriting_node,
     document_parsing_node,

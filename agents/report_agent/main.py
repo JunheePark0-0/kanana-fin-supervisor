@@ -12,7 +12,7 @@ sys.path.insert(0, _REPORT_ROOT)
 from typing import Literal
 
 from nodes import analyze_pdf
-from logger_setting import configure_report_logging
+from report_logger_setting import configure_report_logging
 from router import RouterAgent
 
 CompareMode = Literal["QoQ", "YoY"]

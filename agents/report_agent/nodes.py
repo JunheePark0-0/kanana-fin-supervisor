@@ -26,7 +26,7 @@ from classes import (
     CompareMode,
     ReportResult,
 )
-from utils import sort_period_keys, pick_reference_index, unit_multiplier_to_million, get_quarter, extract_financial_periods, auto_slice_financials
+from report_utils import sort_period_keys, pick_reference_index, unit_multiplier_to_million, get_quarter, extract_financial_periods, auto_slice_financials
 from report_config import ReportConfig
 
 logger = logging.getLogger(__name__)
@@ -701,7 +701,7 @@ def analyze_pdf(
     slice_financial_statement: bool = True,
     work_dir: str | None = None,
 ) -> ReportResult:
-    from utils import auto_slice_financials
+    from report_utils import auto_slice_financials
 
     bundle = get_model_bundle()
     effective_pdf = pdf_path

@@ -1,4 +1,10 @@
+import os
 import sys
+
+_NEWS_ROOT = os.path.dirname(os.path.abspath(__file__))
+_KANANA_ROOT = os.path.dirname(os.path.dirname(_NEWS_ROOT))
+sys.path.insert(0, _KANANA_ROOT)
+sys.path.insert(0, _NEWS_ROOT)
 
 from tavily import TavilyClient
 from news_config import NewsConfig

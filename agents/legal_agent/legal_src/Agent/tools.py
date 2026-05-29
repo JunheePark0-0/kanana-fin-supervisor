@@ -1,15 +1,15 @@
 from langchain_community.tools import tool
 from typing import List, Dict, Optional, Any, Literal
 from pydantic import BaseModel, Field
-from src.Agent.schemas import (UserInput, InputDocument, QueryAnswerable,
+from legal_src.Agent.schemas import (UserInput, InputDocument, QueryAnswerable,
                      DocumentIssue, IssuesList, CombinedQuery, QueryList, 
                      RAGOutput, RAGList, EnoughContext, RerankItem, RerankList,
                      WebSearchQueries, WebSearchOutput, WebSearchList, 
                      ContextOutput, ContextList, AnswerOutput, AnswerEnough, Metadata)
-from src.Agent.functions import load_prompt, document_ocr, truncate_context_texts
+from legal_src.Agent.functions import load_prompt, document_ocr, truncate_context_texts
 
 import chromadb
-from src.RAG.search_kanana_main import NaiveSearchWithAnswer
+from legal_src.RAG.search_kanana_main import NaiveSearchWithAnswer
 from utils.kanana_pipeline import (
     call_kanana,
     call_kanana_structured,

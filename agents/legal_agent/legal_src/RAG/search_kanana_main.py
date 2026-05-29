@@ -34,8 +34,8 @@ from collections import Counter, defaultdict
 import torch    
 from utils.kanana_pipeline import get_kanana_pipeline
 
-from src.RAG.naive_search import NaiveSearchEngine
-from src.RAG.embedding import LawEmbeddings
+from legal_src.RAG.naive_search import NaiveSearchEngine
+from legal_src.RAG.embedding import LawEmbeddings
 from legal_config import LegalConfig
 
 import asyncio 

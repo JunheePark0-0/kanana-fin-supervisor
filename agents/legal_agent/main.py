@@ -12,11 +12,11 @@ sys.path.insert(0, _LEGAL_ROOT)
 
 # Config 및 Logger import
 from legal_config import LegalConfig
-import utils.logger as app_logger
-from utils.logger import log_agent_action
+import legal_utils.logger as app_logger
+from legal_utils.logger import log_agent_action
 
-from src.Agent.schemas import UserInput
-from src.Agent.graph import legal_agent
+from legal_src.Agent.schemas import UserInput
+from legal_src.Agent.graph import legal_agent
 
 import asyncio
 
@@ -83,7 +83,7 @@ async def legal_agent_main(query: str, document_path:str = None):
             app_logger.logger.info("\n" + "=" * 30)
 
     if LegalConfig.ENABLE_LOCAL_LOGGING:
-        from utils.logger import log_conversation
+        from legal_utils.logger import log_conversation
         log_conversation(query, answer if answer is not None else "")
 
     if LegalConfig.ENABLE_LOCAL_LOGGING:

@@ -1,6 +1,6 @@
 from typing import List, Dict, Literal, TypedDict, Optional, Annotated
 import operator
-from src.Agent.schemas import (UserInput, InputDocument, QueryAnswerable, 
+from legal_src.Agent.schemas import (UserInput, InputDocument, QueryAnswerable, 
                      DocumentIssue, IssuesList, CombinedQuery, QueryList, RAGOutput, RAGList, 
                      EnoughContext, WebSearchQueries, WebSearchOutput, WebSearchList, 
                      ContextOutput, ContextList, AnswerOutput, AnswerEnough)

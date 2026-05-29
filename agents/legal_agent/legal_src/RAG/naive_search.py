@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from collections import Counter, defaultdict
 
-from src.RAG.embedding import LawEmbeddings
+from legal_src.RAG.embedding import LawEmbeddings
 from legal_config import LegalConfig
 
 # ChromaDB 텔레메트리 비활성화 (오류 방지)

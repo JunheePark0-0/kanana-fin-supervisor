@@ -5,18 +5,18 @@ Legal Agent 구성 노드들 - Kanana 버전
 from langgraph.graph import StateGraph, END, START
 
 # Logger import
-from utils.logger import logger, log_agent_action
+from legal_utils.logger import logger, log_agent_action
 
 # Kanana 버전의 tools를 import
-from src.Agent.tools import (extend_query, parse_document_ocr, check_query_answerable, extract_issues,
+from legal_src.Agent.tools import (extend_query, parse_document_ocr, check_query_answerable, extract_issues,
                     search_rag, check_enough_context, generate_search_queries, search_web, 
                     rerank_contexts, generate_answer, confirm_answer, retry_answer)
-from src.Agent.schemas import (UserInput, InputDocument, DocumentIssue, IssuesList, 
+from legal_src.Agent.schemas import (UserInput, InputDocument, DocumentIssue, IssuesList, 
                     CombinedQuery, QueryList, RAGOutput, RAGList, 
                     EnoughContext, WebSearchQueries, WebSearchOutput, WebSearchList, 
                     ContextOutput, ContextList, AnswerOutput, AnswerEnough)
-from src.Agent.states import LegalAgentState
-from src.Agent.functions import load_prompt, determine_input_type, document_ocr, filter_low_relevance_contexts
+from legal_src.Agent.states import LegalAgentState
+from legal_src.Agent.functions import load_prompt, determine_input_type, document_ocr, filter_low_relevance_contexts
 
 # Nodes
 def routing_node(state: LegalAgentState) -> LegalAgentState:
