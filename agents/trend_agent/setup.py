@@ -4,7 +4,7 @@
 import os
 import sys
 import subprocess
-from config import Config
+from trend_config import TrendConfig
 from logger_setting import get_logger
 
 log = get_logger("Setup")
@@ -30,7 +30,7 @@ def remove_conflicting_packages() -> bool:
 def check_env() -> bool:
     """필수 환경변수 확인"""
     log.info("[ 1/4 ] 환경변수 확인 중...")
-    if not Config.TAVILY_API_KEY:
+    if not TrendConfig.TAVILY_API_KEY:
         log.error("TAVILY_API_KEY가 설정되지 않았습니다. .env 파일을 확인하세요.")
         return False
     log.info("환경변수 정상 확인")
@@ -54,13 +54,13 @@ def check_model() -> bool:
 def check_csv() -> bool:
     """RAG용 CSV 데이터 파일 확인"""
     log.info("[ 3/4 ] CSV 데이터 파일 확인 중...")
-    if os.path.exists(Config.DATA_PATH):
+    if os.path.exists(TrendConfig.DATA_PATH):
         import pandas as pd
-        df = pd.read_csv(Config.DATA_PATH)
-        log.info(f"CSV 파일 확인 완료 (총 {len(df)}개 행, 경로: {Config.DATA_PATH})")
+        df = pd.read_csv(TrendConfig.DATA_PATH)
+        log.info(f"CSV 파일 확인 완료 (총 {len(df)}개 행, 경로: {TrendConfig.DATA_PATH})")
         return True
     else:
-        log.warning(f"CSV 파일 없음: {Config.DATA_PATH}")
+        log.warning(f"CSV 파일 없음: {TrendConfig.DATA_PATH}")
         log.warning("→ sync_csv_data()를 실행하여 데이터를 수집합니다.")
         try:
             from database import sync_csv_data
@@ -75,11 +75,11 @@ def check_csv() -> bool:
 def check_vector_db() -> bool:
     """Vector DB 확인 및 없을 시 자동 생성"""
     log.info("[ 4/4 ] Vector DB 확인 중...")
-    if os.path.exists(Config.DB_PATH) and os.listdir(Config.DB_PATH):
-        log.info(f"Vector DB 확인 완료 (경로: {Config.DB_PATH})")
+    if os.path.exists(TrendConfig.DB_PATH) and os.listdir(TrendConfig.DB_PATH):
+        log.info(f"Vector DB 확인 완료 (경로: {TrendConfig.DB_PATH})")
         return True
     else:
-        log.warning(f"Vector DB 없음: {Config.DB_PATH}")
+        log.warning(f"Vector DB 없음: {TrendConfig.DB_PATH}")
         log.warning("→ update_vector_db()를 실행하여 DB를 생성합니다.")
         try:
             from database import update_vector_db

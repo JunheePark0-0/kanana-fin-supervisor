@@ -1,9 +1,9 @@
-import sys
+﻿import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from src.Agent.graph import agent_debate_graph
-from config import Config
+from stock_config import StockConfig
 from utils.kanana_pipeline import get_kanana_pipeline
 from utils.log_paths import get_agent_log_run_dir
 from utils.logger import setup_logger
@@ -12,8 +12,8 @@ import traceback
 import asyncio
 
 async def main(ticker : str):
-    log_run_dir = get_agent_log_run_dir(Config.AGENT_LOG_NAME, new_folder = True)
-    if Config.ENABLE_LOCAL_LOGGING:
+    log_run_dir = get_agent_log_run_dir(StockConfig.AGENT_LOG_NAME, new_folder = True)
+    if StockConfig.ENABLE_LOCAL_LOGGING:
         setup_logger(log_run_dir = log_run_dir)
 
     # 모델 초기화 로그를 먼저 보여주기 위해 배너 출력 전에 선로딩

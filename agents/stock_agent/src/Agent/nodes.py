@@ -1,8 +1,8 @@
-import os
+﻿import os
 
 from datetime import datetime
 from pathlib import Path
-from config import Config
+from stock_config import StockConfig
 
 from utils.kanana_pipeline import extract_pure_text, call_kanana
 from src.Agent.functions import load_prompt, create_agent, call_kanana_structured, format_sources_block, extract_used_arguments, unique_sources
@@ -292,7 +292,7 @@ def summary_node(state: DebateAgentState):
             system_prompt = system_prompt,
             user_input = input_message,
             output_schema = ConsensusOutput,
-            max_new_tokens = Config.KANANA_SUMMARY_MAX_NEW_TOKENS
+            max_new_tokens = StockConfig.KANANA_SUMMARY_MAX_NEW_TOKENS
         )
     # 결과 반환
         final_report = consensus.to_report_text
@@ -319,7 +319,7 @@ def save_debate_node(state : DebateAgentState):
     ticker = state["ticker"]
     all_sources = unique_sources(state.get("sources", []))
     sources_text = format_sources_block(all_sources)
-    debate_path = get_agent_log_run_dir(Config.AGENT_LOG_NAME)
+    debate_path = get_agent_log_run_dir(StockConfig.AGENT_LOG_NAME)
     debate_path.mkdir(parents=True, exist_ok=True)
     full_report = [
         f"{'='*50}",

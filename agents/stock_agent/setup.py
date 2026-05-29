@@ -1,9 +1,9 @@
-import subprocess
+﻿import subprocess
 import sys
 import shutil
 from pathlib import Path
 
-from config import Config
+from stock_config import StockConfig
 
 
 def download_kanana(model_name: str, save_dir: Path) -> None:
@@ -38,8 +38,8 @@ def ensure_kanana_model() -> None:
     """
     Config에서 model_name, save_dir를 가져와 로컬 모델 존재 여부를 확인하고 필요 시 다운로드합니다.
     """
-    model_name = Config.KANANA_MODEL_NAME
-    save_dir = Path(Config.KANANA_MODEL_PATH)
+    model_name = StockConfig.KANANA_MODEL_NAME
+    save_dir = Path(StockConfig.KANANA_MODEL_PATH)
 
     print("Kanana 모델 확인 중..")
     if has_local_kanana(save_dir):
@@ -52,9 +52,9 @@ def ensure_kanana_model() -> None:
 
 def ensure_env_file() -> None:
     """루트 .env에 SEC 크롤링용 USER_EMAIL이 설정되어 있는지 확인합니다."""
-    from config import Config
+    from stock_config import StockConfig
 
-    if not Config.USER_EMAIL:
+    if not StockConfig.USER_EMAIL:
         raise ValueError(
             "USER_EMAIL이 설정되어 있지 않습니다. "
             "프로젝트 루트 .env 파일에 USER_EMAIL을 설정해주세요."

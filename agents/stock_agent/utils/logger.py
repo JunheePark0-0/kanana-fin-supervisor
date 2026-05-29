@@ -1,8 +1,8 @@
-import logging
+﻿import logging
 import json
 from pathlib import Path
 
-from config import Config
+from stock_config import StockConfig
 from utils.log_paths import DEFAULT_AGENT_LOG_FILENAME, get_agent_log_run_dir
 
 
@@ -29,8 +29,8 @@ def setup_logger(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    if Config.ENABLE_LOCAL_LOGGING:
-        run_dir = Path(log_run_dir) if log_run_dir else get_agent_log_run_dir(Config.AGENT_LOG_NAME)
+    if StockConfig.ENABLE_LOCAL_LOGGING:
+        run_dir = Path(log_run_dir) if log_run_dir else get_agent_log_run_dir(StockConfig.AGENT_LOG_NAME)
         log_filename = run_dir / DEFAULT_AGENT_LOG_FILENAME
         file_handler = RealTimeFileHandler(log_filename, encoding = 'utf-8')
         file_handler.setFormatter(formatter)

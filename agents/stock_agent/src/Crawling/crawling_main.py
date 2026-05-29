@@ -1,6 +1,6 @@
-import sys
+﻿import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from src.Crawling.news_crawling import News_Crawler
 from src.Crawling.news_db import News_Database
@@ -12,13 +12,13 @@ import argparse
 from pathlib import Path
 import asyncio
 
-from config import Config
-NEWS_FILE_PATH = Config.NEWS_FILE_PATH
-NEWS_DB_PATH = Config.NEWS_DB_PATH
-SEC_FILE_PATH = Config.SEC_FILE_PATH
-SEC_DB_PATH = Config.SEC_DB_PATH
+from stock_config import StockConfig
+NEWS_FILE_PATH = StockConfig.NEWS_FILE_PATH
+NEWS_DB_PATH = StockConfig.NEWS_DB_PATH
+SEC_FILE_PATH = StockConfig.SEC_FILE_PATH
+SEC_DB_PATH = StockConfig.SEC_DB_PATH
 
-tickers = Config.TICKER_MAP
+tickers = StockConfig.TICKER_MAP
 
 def ensure_directory(path : Path):
     """디렉토리가 없으면 생성하는 함수"""

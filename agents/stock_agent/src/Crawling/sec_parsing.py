@@ -1,12 +1,12 @@
-import warnings
+﻿import warnings
 
 from bs4 import BeautifulSoup, Comment, XMLParsedAsHTMLWarning
 import json
 import re
 from pathlib import Path
 
-from config import Config
-SEC_FILE_PATH = Config.SEC_FILE_PATH
+from stock_config import StockConfig
+SEC_FILE_PATH = StockConfig.SEC_FILE_PATH
 
 class SEC_Parser:
     def __init__(self, ticker : str, file_path : Path):

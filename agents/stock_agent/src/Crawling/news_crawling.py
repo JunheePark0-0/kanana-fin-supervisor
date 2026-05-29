@@ -1,4 +1,4 @@
-from selenium import webdriver
+﻿from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -25,11 +25,11 @@ chrome_options.add_argument("--window-size=1920,1080")
 chrome_options.add_argument("--disable-extensions")
 chrome_options.add_argument("--disable-software-rasterizer")
 
-from config import Config
-MAX_NEWS_COUNT = Config.MAX_NEWS_COUNT
+from stock_config import StockConfig
+MAX_NEWS_COUNT = StockConfig.MAX_NEWS_COUNT
 
-NEWS_FILE_PATH = Config.NEWS_FILE_PATH
-NEWS_DB_PATH = Config.NEWS_DB_PATH
+NEWS_FILE_PATH = StockConfig.NEWS_FILE_PATH
+NEWS_DB_PATH = StockConfig.NEWS_DB_PATH
 
 class News_Crawler:
     def _kill_stale_driver_processes(self, kill_chrome: bool = False):

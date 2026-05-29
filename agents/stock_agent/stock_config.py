@@ -5,25 +5,18 @@ from utils.config_bootstrap import bootstrap_config
 _CTX = bootstrap_config(__file__)
 BaseConfig = _CTX.base_config
 
-class Config:
+class StockConfig(BaseConfig):
     """Agent 전역 설정"""
     # ============================================================================
     # 로깅 설정 
     # ============================================================================
-    ENABLE_LOCAL_LOGGING = BaseConfig.ENABLE_LOCAL_LOGGING
     AGENT_LOG_NAME = "stock_agent"
 
     # ============================================================================
     # 모델 설정
     # ============================================================================
-    KANANA_MODEL_NAME = BaseConfig.KANANA_MODEL_NAME
     KANANA_MAX_NEW_TOKENS = BaseConfig.KANANA_MAX_NEW_TOKENS * 2 # stock agent는 더 많은 토큰 필요
     KANANA_SUMMARY_MAX_NEW_TOKENS = 2048
-
-    # ============================================================================
-    # API 키 / 외부 식별 (루트 .env)
-    # ============================================================================
-    USER_EMAIL = os.getenv("USER_EMAIL", "")
 
     # ============================================================================
     # 경로 설정

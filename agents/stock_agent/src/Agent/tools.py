@@ -1,17 +1,17 @@
-from typing import List, Dict
+﻿from typing import List, Dict
 from pathlib import Path
 from langchain_core.tools import tool
 
 from src.Crawling.get_context import GetContext
-from config import Config
+from stock_config import StockConfig
 
-NEWS_FILE_PATH = Config.NEWS_FILE_PATH
-NEWS_DB_PATH = Config.NEWS_DB_PATH
-MAX_NEWS_COUNT = Config.MAX_NEWS_COUNT
-SEC_DB_PATH = Config.SEC_DB_PATH
+NEWS_FILE_PATH = StockConfig.NEWS_FILE_PATH
+NEWS_DB_PATH = StockConfig.NEWS_DB_PATH
+MAX_NEWS_COUNT = StockConfig.MAX_NEWS_COUNT
+SEC_DB_PATH = StockConfig.SEC_DB_PATH
 
-MAX_NEWS_COUNT = Config.MAX_NEWS_COUNT
-MAX_SEC_DAYS = Config.MAX_SEC_DAYS
+MAX_NEWS_COUNT = StockConfig.MAX_NEWS_COUNT
+MAX_SEC_DAYS = StockConfig.MAX_SEC_DAYS
 
 context_manager = GetContext()
 

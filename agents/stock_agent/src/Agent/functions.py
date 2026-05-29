@@ -1,4 +1,4 @@
-from typing import Dict, Literal, Any, List
+﻿from typing import Dict, Literal, Any, List
 import yaml
 import json
 from datetime import datetime
@@ -10,8 +10,10 @@ _AGENT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(_AGENT_ROOT))
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
+if str(_AGENT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_AGENT_ROOT))
 
-from config import Config
+from stock_config import StockConfig
 from utils.kanana_pipeline import (
     call_kanana,
     call_kanana_structured as _call_kanana_structured,
@@ -20,9 +22,10 @@ from utils.kanana_pipeline import (
 )
 from src.Agent.schemas import InitialOutput, DebateOutput
 from utils.logger import log_tool_call
-MAX_NEWS_COUNT = Config.MAX_NEWS_COUNT
-MAX_SEC_DAYS = Config.MAX_SEC_DAYS
-KANANA_MAX_NEW_TOKENS = Config.KANANA_MAX_NEW_TOKENS
+
+MAX_NEWS_COUNT = StockConfig.MAX_NEWS_COUNT
+MAX_SEC_DAYS = StockConfig.MAX_SEC_DAYS
+KANANA_MAX_NEW_TOKENS = StockConfig.KANANA_MAX_NEW_TOKENS
 
 
 def _collect_sources(

@@ -1,27 +1,27 @@
-from datetime import datetime, timedelta
+﻿from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Optional, List
 
 import requests
 import pandas as pd
 
-from config import Config
+from stock_config import StockConfig
 
-SEC_FILE_PATH = Config.SEC_FILE_PATH
-SEC_DB_PATH = Config.SEC_DB_PATH
-MAX_SEC_DAYS = Config.MAX_SEC_DAYS
+SEC_FILE_PATH = StockConfig.SEC_FILE_PATH
+SEC_DB_PATH = StockConfig.SEC_DB_PATH
+MAX_SEC_DAYS = StockConfig.MAX_SEC_DAYS
 
 from src.Crawling.sec_parsing import SEC_Parser
 
 class SEC_Crawler:
     def __init__(self):
         self.session = requests.Session()
-        if not Config.USER_EMAIL:
+        if not StockConfig.USER_EMAIL:
             raise ValueError(
                 "USER_EMAIL이 설정되어 있지 않습니다. "
                 "프로젝트 루트 .env 파일에 USER_EMAIL을 설정해주세요."
             )
-        self.session.headers.update({"User-Agent": Config.USER_EMAIL})
+        self.session.headers.update({"User-Agent": StockConfig.USER_EMAIL})
 
     def get_cik_from_ticker(self, ticker : str) -> Optional[str]:
         """티커로부터 CIK 코드를 반환"""

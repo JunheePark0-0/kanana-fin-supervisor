@@ -8,12 +8,20 @@ class BaseConfig:
     PROJECT_ROOT = Path(__file__).resolve().parent
 
     # --------------------------------------------
+    # .env 설정
+    # --------------------------------------------
+    TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")
+    UPSTAGE_API_KEY = os.getenv("UPSTAGE_API_KEY", "")
+    USER_EMAIL = os.getenv("USER_EMAIL", "")
+
+    KANANA_MAX_NEW_TOKENS = int(os.getenv("KANANA_MAX_NEW_TOKENS", "512"))
+    ENABLE_LOCAL_LOGGING = os.getenv("ENABLE_LOCAL_LOGGING", "false").lower() == "true"
+
+    # --------------------------------------------
     # 모델 설정
     # --------------------------------------------
     KANANA_MODEL_NAME = "kakaocorp/kanana-1.5-2.1b-instruct-2505"
     BGE_M3_MODEL_NAME = "BAAI/bge-m3"
-    KANANA_MAX_NEW_TOKENS = int(os.getenv("KANANA_MAX_NEW_TOKENS", "512"))
-    ENABLE_LOCAL_LOGGING = os.getenv("ENABLE_LOCAL_LOGGING", "false").lower() == "true"
     
     KANANA_SUMMARY_MAX_NEW_TOKENS = int(os.getenv("KANANA_SUMMARY_MAX_NEW_TOKENS", "2048"))
     # --------------------------------------------

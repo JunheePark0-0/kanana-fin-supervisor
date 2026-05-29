@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # main.py  ―  Kanana 전용 금융 에이전트
 # ============================================================
 import torch
@@ -34,7 +34,7 @@ except ImportError:
     BM25Retriever = None
     _BM25_AVAILABLE = False
 
-from config import Config
+from trend_config import TrendConfig
 from utils.kanana_pipeline import get_kanana_model
 from logger_setting import get_logger
 
@@ -47,9 +47,9 @@ def get_embeddings() -> HuggingFaceEmbeddings:
     global _embeddings
     if _embeddings is None:
         _embeddings = HuggingFaceEmbeddings(
-            model_name=Config.EMBED_MODEL_NAME,
-            model_kwargs=Config.EMBED_MODEL_KWARGS,
-            encode_kwargs=Config.EMBED_ENCODE_KWARGS,
+            model_name=TrendConfig.EMBED_MODEL_NAME,
+            model_kwargs=TrendConfig.EMBED_MODEL_KWARGS,
+            encode_kwargs=TrendConfig.EMBED_ENCODE_KWARGS,
         )
     return _embeddings
 
@@ -1520,7 +1520,7 @@ def init_vector_db() -> None:
     """Chroma vector DB 초기화 (in-process 호출용)."""
     global vector_db
     if vector_db is None:
-        vector_db = Chroma(persist_directory=Config.DB_PATH, embedding_function=get_embeddings())
+        vector_db = Chroma(persist_directory=TrendConfig.DB_PATH, embedding_function=get_embeddings())
         ensure_date_int_metadata()
         log.info("Vector DB 초기화 완료.")
 
@@ -1568,3 +1568,4 @@ if __name__ == "__main__":
         import asyncio
         result = asyncio.run(trend_agent_main(question))
         print(f"\n{result['answer']}")
+

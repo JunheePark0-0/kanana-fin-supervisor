@@ -1,4 +1,4 @@
-# 필요한 라이브러리
+﻿# 필요한 라이브러리
 import os
 import re
 import time
@@ -13,7 +13,7 @@ try:
 except ImportError:
     from langchain_community.vectorstores import Chroma  
 from langchain_core.documents import Document
-from config import Config
+from trend_config import TrendConfig
 from logger_setting import get_logger
 
 log = get_logger("Database")
@@ -25,15 +25,15 @@ def sync_csv_data():
 
     page_url = "https://www.kcif.or.kr/search?rpt_cd=002001001&odr=new&pg={}"
 
-    # 기존 데이터 로드 및 기준일 설정
-    if os.path.exists(Config.DATA_PATH):
-        df_existing = pd.read_csv(Config.DATA_PATH)
+    # 湲곗〈 ?곗씠??濡쒕뱶 諛?湲곗????ㅼ젙
+    if os.path.exists(TrendConfig.DATA_PATH):
+        df_existing = pd.read_csv(TrendConfig.DATA_PATH)
         df_existing['date'] = pd.to_datetime(df_existing['date'])
         last_date   = df_existing['date'].max()
         cutoff_date = last_date + pd.Timedelta(days=1)
         log.info(f"기존 최신 날짜: {last_date.strftime('%Y-%m-%d')}. 이후 데이터부터 수집합니다.")
     else:
-        os.makedirs(Config.DATA_DIR, exist_ok=True)
+        os.makedirs(TrendConfig.DATA_DIR, exist_ok=True)
         df_existing = pd.DataFrame(columns=["date", "content"])
         today       = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
         cutoff_date = today.replace(year=today.year - 3)
@@ -84,7 +84,7 @@ def sync_csv_data():
         df_final = pd.concat([df_new, df_existing], ignore_index=True)
         df_final = df_final.drop_duplicates(subset=['date', 'content'], keep='first')
         df_final = df_final.sort_values(by='date', ascending=False)
-        df_final.to_csv(Config.DATA_PATH, index=False, encoding="utf-8-sig")
+        df_final.to_csv(TrendConfig.DATA_PATH, index=False, encoding="utf-8-sig")
         log.info(f"업데이트 완료! 신규: {len(df_new)}개 / 총: {len(df_final)}개")
     else:
         log.info("✅ 최신 상태입니다. 추가할 데이터가 없습니다.")
@@ -144,14 +144,14 @@ def update_vector_db():
     log.info("Vector DB 증분 업데이트 시작...")
 
     embeddings = HuggingFaceEmbeddings(
-        model_name=Config.EMBED_MODEL_NAME,
-        model_kwargs=Config.EMBED_MODEL_KWARGS,
-        encode_kwargs=Config.EMBED_ENCODE_KWARGS,
+        model_name=TrendConfig.EMBED_MODEL_NAME,
+        model_kwargs=TrendConfig.EMBED_MODEL_KWARGS,
+        encode_kwargs=TrendConfig.EMBED_ENCODE_KWARGS,
     )
 
     # DB 로드 혹은 생성
-    if os.path.exists(Config.DB_PATH):
-        vector_db    = Chroma(persist_directory=Config.DB_PATH, embedding_function=embeddings)
+    if os.path.exists(TrendConfig.DB_PATH):
+        vector_db    = Chroma(persist_directory=TrendConfig.DB_PATH, embedding_function=embeddings)
         all_metadata = vector_db.get(include=['metadatas'])['metadatas']
         if all_metadata:
             last_db_date = pd.to_datetime(max([m['date'] for m in all_metadata]))
@@ -160,16 +160,16 @@ def update_vector_db():
             last_db_date = None
     else:
         log.info("기존 DB가 없습니다. 새로 생성합니다.")
-        os.makedirs(Config.DB_PATH, exist_ok=True)
-        vector_db    = Chroma(persist_directory=Config.DB_PATH, embedding_function=embeddings)
+        os.makedirs(TrendConfig.DB_PATH, exist_ok=True)
+        vector_db    = Chroma(persist_directory=TrendConfig.DB_PATH, embedding_function=embeddings)
         last_db_date = None
 
     # CSV 로드 및 신규 데이터 필터링
-    if not os.path.exists(Config.DATA_PATH):
+    if not os.path.exists(TrendConfig.DATA_PATH):
         log.error("CSV 파일이 없습니다. 크롤링을 먼저 진행하세요.")
         return None
 
-    df_full        = pd.read_csv(Config.DATA_PATH)
+    df_full        = pd.read_csv(TrendConfig.DATA_PATH)
     df_full['date'] = pd.to_datetime(df_full['date'])
     df_new = df_full[df_full['date'] > last_db_date].copy() if last_db_date is not None else df_full
 

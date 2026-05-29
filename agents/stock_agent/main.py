@@ -13,7 +13,6 @@ import asyncio
 from src.Crawling.crawling_main import main as run_crawling
 from src.Agent.agent_main import main as run_agent_debate
 
-
 async def stock_agent_main(ticker: str):
     """상위 에이전트가 호출할 최종 진입 지점"""
     ticker = ticker.upper()
