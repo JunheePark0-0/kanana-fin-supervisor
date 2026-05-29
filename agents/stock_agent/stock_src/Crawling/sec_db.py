@@ -4,7 +4,7 @@ import sqlite3
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 
-from src.Crawling.sec_crawling import SEC_Crawler
+from stock_src.Crawling.sec_crawling import SEC_Crawler
 
 
 class SEC_Database:

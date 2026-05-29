@@ -2,11 +2,11 @@
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from src.Agent.graph import agent_debate_graph
+from stock_src.Agent.graph import agent_debate_graph
 from stock_config import StockConfig
 from utils.kanana_pipeline import get_kanana_pipeline
 from utils.log_paths import get_agent_log_run_dir
-from utils.logger import setup_logger
+from stock_utils.logger import setup_logger
 import argparse
 import traceback
 import asyncio

@@ -1,12 +1,12 @@
 from typing import Literal, List
 from langgraph.graph import StateGraph, END, START
 
-from src.Agent.states import DebateAgentState
-from src.Agent.nodes import (
+from stock_src.Agent.states import DebateAgentState
+from stock_src.Agent.nodes import (
     optimistic_initial_node, pessimistic_initial_node,
     optimistic_debate_node, pessimistic_debate_node,
     should_continue_node, summary_node, save_debate_node)
-from src.Agent.functions import should_continue
+from stock_src.Agent.functions import should_continue
 
 def agent_debate_graph():
     """

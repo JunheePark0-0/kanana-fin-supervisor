@@ -14,7 +14,7 @@ except ImportError:
     from langchain_community.vectorstores import Chroma  
 from langchain_core.documents import Document
 from trend_config import TrendConfig
-from logger_setting import get_logger
+from trend_logger_setting import get_logger
 
 log = get_logger("Database")
 

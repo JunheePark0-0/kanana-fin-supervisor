@@ -2,7 +2,7 @@
 from pathlib import Path
 from langchain_core.tools import tool
 
-from src.Crawling.get_context import GetContext
+from stock_src.Crawling.get_context import GetContext
 from stock_config import StockConfig
 
 NEWS_FILE_PATH = StockConfig.NEWS_FILE_PATH

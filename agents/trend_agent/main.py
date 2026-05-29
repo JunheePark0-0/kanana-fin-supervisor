@@ -1,10 +1,17 @@
 ﻿# ============================================================
 # main.py  ―  Kanana 전용 금융 에이전트
 # ============================================================
+import os
+import sys
+
+_TREND_ROOT = os.path.dirname(os.path.abspath(__file__))
+_KANANA_ROOT = os.path.dirname(os.path.dirname(_TREND_ROOT))
+sys.path.insert(0, _KANANA_ROOT)
+sys.path.insert(0, _TREND_ROOT)
+
 import torch
 import operator
 import re
-import os
 import textwrap
 from datetime import datetime, timedelta
 from typing import List, Annotated, TypedDict, Any, Literal
@@ -36,7 +43,7 @@ except ImportError:
 
 from trend_config import TrendConfig
 from utils.kanana_pipeline import get_kanana_model
-from logger_setting import get_logger
+from trend_logger_setting import get_logger
 
 log = get_logger("MainAgent")
 

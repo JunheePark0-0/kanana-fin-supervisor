@@ -2,10 +2,10 @@
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from src.Crawling.news_crawling import News_Crawler
-from src.Crawling.news_db import News_Database
-from src.Crawling.sec_crawling import SEC_Crawler
-from src.Crawling.sec_db import SEC_Database
+from stock_src.Crawling.news_crawling import News_Crawler
+from stock_src.Crawling.news_db import News_Database
+from stock_src.Crawling.sec_crawling import SEC_Crawler
+from stock_src.Crawling.sec_db import SEC_Database
 
 import sys, os
 import argparse 

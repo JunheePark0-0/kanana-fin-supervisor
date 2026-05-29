@@ -5,7 +5,7 @@ import os
 import sys
 import subprocess
 from trend_config import TrendConfig
-from logger_setting import get_logger
+from trend_logger_setting import get_logger
 
 log = get_logger("Setup")
 

@@ -11,7 +11,7 @@ SEC_FILE_PATH = StockConfig.SEC_FILE_PATH
 SEC_DB_PATH = StockConfig.SEC_DB_PATH
 MAX_SEC_DAYS = StockConfig.MAX_SEC_DAYS
 
-from src.Crawling.sec_parsing import SEC_Parser
+from stock_src.Crawling.sec_parsing import SEC_Parser
 
 class SEC_Crawler:
     def __init__(self):

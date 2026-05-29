@@ -5,7 +5,7 @@
 import sqlite3
 import pandas as pd
 import os
-from src.Crawling.news_crawling import News_Crawler
+from stock_src.Crawling.news_crawling import News_Crawler
 from typing import Dict, List
 
 from selenium import webdriver

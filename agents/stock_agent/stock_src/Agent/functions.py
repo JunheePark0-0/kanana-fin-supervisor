@@ -2,7 +2,7 @@
 import yaml
 import json
 from datetime import datetime
-from src.Agent.states import DebateAgentState
+from stock_src.Agent.states import DebateAgentState
 import os
 import sys
 
@@ -20,8 +20,8 @@ from utils.kanana_pipeline import (
     _extract_first_json,
     _extract_output_only,
 )
-from src.Agent.schemas import InitialOutput, DebateOutput
-from utils.logger import log_tool_call
+from stock_src.Agent.schemas import InitialOutput, DebateOutput
+from stock_utils.logger import log_tool_call
 
 MAX_NEWS_COUNT = StockConfig.MAX_NEWS_COUNT
 MAX_SEC_DAYS = StockConfig.MAX_SEC_DAYS
@@ -89,7 +89,7 @@ def load_prompt(prompt_name: str, **kwargs) -> str:
     prompts.yaml에서 프롬프트를 로드하여, 문자열로 반환합니다.
     (**kwargs : 프롬프트에서 비어있는 부분(ex. ticker, history 등)을 채워주기 위함)
     """
-    with open(f"src/Agent/prompts.yaml", "r", encoding = "utf-8") as f:
+    with open(f"stock_src/Agent/prompts.yaml", "r", encoding = "utf-8") as f:
         prompts = yaml.safe_load(f)
         prompt = prompts.get(prompt_name, {})
 
