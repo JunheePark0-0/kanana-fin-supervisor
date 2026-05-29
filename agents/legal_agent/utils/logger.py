@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from config import Config
+from legal_config import LegalConfig
 from utils.log_paths import DEFAULT_AGENT_LOG_FILENAME, create_agent_log_run_dir
 
 
@@ -28,8 +28,8 @@ def setup_logger(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    if Config.ENABLE_LOCAL_LOGGING:
-        run_dir = Path(log_run_dir) if log_run_dir else create_agent_log_run_dir(Config.AGENT_LOG_NAME)
+    if LegalConfig.ENABLE_LOCAL_LOGGING:
+        run_dir = Path(log_run_dir) if log_run_dir else create_agent_log_run_dir(LegalConfig.AGENT_LOG_NAME)
         log_filename = run_dir / DEFAULT_AGENT_LOG_FILENAME
         file_handler = RealTimeFileHandler(log_filename, encoding = 'utf-8')
         file_handler.setFormatter(formatter)

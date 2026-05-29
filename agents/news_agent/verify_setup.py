@@ -9,12 +9,7 @@ import sys
 from pathlib import Path
 
 # 프로젝트 루트에서 config 로드
-from config import (
-    COLLECTION_NAME,
-    EMBEDDING_MODEL_DIR,
-    MODEL_DIR,
-    QDRANT_PATH,
-)
+from news_config import NewsConfig
 
 
 def _ok(msg: str) -> None:
@@ -55,23 +50,23 @@ def run_checks() -> int:
     errors = 0
 
     print("[1] Kanana (MODEL_DIR)")
-    if not check_dir(MODEL_DIR, "MODEL_DIR"):
+    if not check_dir(NewsConfig.MODEL_DIR, "MODEL_DIR"):
         errors += 1
     else:
         for name in ("config.json", "tokenizer.json", "tokenizer_config.json"):
-            p = Path(MODEL_DIR) / name
+            p = Path(NewsConfig.MODEL_DIR) / name
             if not check_file(p, name):
                 errors += 1
-        w = Path(MODEL_DIR)
+        w = Path(NewsConfig.MODEL_DIR)
         if not (w / "model.safetensors").is_file() and not (w / "pytorch_model.bin").is_file():
             _warn("가중치 파일(model.safetensors 또는 pytorch_model.bin) 없음")
             errors += 1
 
     print("\n[2] 임베딩 (EMBEDDING_MODEL_DIR)")
-    if not check_dir(EMBEDDING_MODEL_DIR, "EMBEDDING_MODEL_DIR"):
+    if not check_dir(NewsConfig.EMBEDDING_MODEL_DIR, "EMBEDDING_MODEL_DIR"):
         errors += 1
     else:
-        emb = Path(EMBEDDING_MODEL_DIR)
+        emb = Path(NewsConfig.EMBEDDING_MODEL_DIR)
         for rel in ("config.json", "modules.json", "tokenizer.json"):
             if not check_file(emb / rel, rel):
                 errors += 1
@@ -86,13 +81,13 @@ def run_checks() -> int:
             _ok("2_Normalize/ (폴더 존재)")
 
     print("\n[3] Qdrant (경로만 확인, DB 미오픈)")
-    print(f"  COLLECTION_NAME={COLLECTION_NAME}")
-    if not check_dir(QDRANT_PATH, "QDRANT_PATH"):
+    print(f"  COLLECTION_NAME={NewsConfig.COLLECTION_NAME}")
+    if not check_dir(NewsConfig.QDRANT_PATH, "QDRANT_PATH"):
         errors += 1
     else:
-        coll_sql = Path(QDRANT_PATH) / "collection" / COLLECTION_NAME / "storage.sqlite"
+        coll_sql = Path(NewsConfig.QDRANT_PATH) / "collection" / NewsConfig.COLLECTION_NAME / "storage.sqlite"
         if coll_sql.is_file():
-            _ok(f"컬렉션 데이터 파일 존재: .../{COLLECTION_NAME}/storage.sqlite")
+            _ok(f"컬렉션 데이터 파일 존재: .../{NewsConfig.COLLECTION_NAME}/storage.sqlite")
         else:
             _warn(
                 "storage.sqlite 없음 (적재 중이거나 경로/컬렉션명 불일치일 수 있음). "

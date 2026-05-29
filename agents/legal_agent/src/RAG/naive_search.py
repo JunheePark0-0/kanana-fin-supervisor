@@ -10,7 +10,7 @@ import pandas as pd
 from collections import Counter, defaultdict
 
 from src.RAG.embedding import LawEmbeddings
-from config import Config
+from legal_config import LegalConfig
 
 # ChromaDB 텔레메트리 비활성화 (오류 방지)
 os.environ["ANONYMIZED_TELEMETRY"] = "False"
@@ -26,7 +26,7 @@ except ImportError:
     pass
 
 class NaiveSearchEngine():
-    def __init__(self, collection, query_embedding, normalize : bool = True, top_k : int = 5, save_path : str = Config.FILTERED_DB_PATH):
+    def __init__(self, collection, query_embedding, normalize : bool = True, top_k : int = 5, save_path : str = LegalConfig.FILTERED_DB_PATH):
         """
         vector_db의 자료를 기반으로 query와 관련 있는 문서 k개 필터링, 응답 생성
         (Naive RAG)
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     print(f"ChromaDB 버전: {chromadb.__version__}")
 
     # 2. 데이터베이스 상태 확인
-    lawdb_path = Config.LAW_DB_PATH
+    lawdb_path = LegalConfig.LAW_DB_PATH
 
     client = chromadb.PersistentClient(path=str(lawdb_path))
     collection = client.get_or_create_collection("laws")

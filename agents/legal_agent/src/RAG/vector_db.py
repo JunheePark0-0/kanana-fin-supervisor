@@ -21,10 +21,10 @@ from pathlib import Path
 import gc
 import psutil
 
-from config import Config
+from legal_config import LegalConfig
 
 class LawVectorDB:
-    def __init__(self, vectordb_path : str = Config.LAW_DB_PATH, vectordb_name : str = "laws"):
+    def __init__(self, vectordb_path : str = LegalConfig.LAW_DB_PATH, vectordb_name : str = "laws"):
         self.vectordb_path = vectordb_path
         if not os.path.exists(self.vectordb_path):
             os.makedirs(self.vectordb_path)

@@ -2,7 +2,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from config import Config
+from legal_config import LegalConfig
 
 
 def download_kanana(model_name: str, save_dir: Path) -> None:
@@ -37,8 +37,8 @@ def ensure_kanana_model() -> None:
     """
     Config에서 model_name, save_dir를 가져와 로컬 모델 존재 여부를 확인하고 필요 시 다운로드합니다.
     """
-    model_name = Config.KANANA_MODEL_NAME
-    save_dir = Path(Config.KANANA_MODEL_PATH)
+    model_name = LegalConfig.KANANA_MODEL_NAME
+    save_dir = Path(LegalConfig.KANANA_MODEL_PATH)
 
     print("Kanana 모델 확인 중..")
     if has_local_kanana(save_dir):
@@ -55,7 +55,7 @@ def ensure_law_db() -> None:
     LawDB 폴더 내 .sqlite3 파일 존재 여부를 확인하고
     없으면 src.RAG.db_main을 실행해 생성합니다.
     """
-    db_path = Path(Config.LAW_DB_PATH)
+    db_path = Path(LegalConfig.LAW_DB_PATH)
     sqlite_files = list(db_path.glob("*.sqlite3")) if db_path.exists() else []
 
     print("RAG를 위한 DB 확인 중..")
@@ -75,9 +75,9 @@ def ensure_law_db() -> None:
 
 def ensure_env_file() -> None:
     """루트 .env에 Tavily API 키가 설정되어 있는지 확인합니다."""
-    from config import Config
+    from legal_config import LegalConfig
 
-    if not Config.TAVILY_API_KEY:
+    if not LegalConfig.TAVILY_API_KEY:
         raise ValueError(
             "TAVILY_API_KEY가 설정되어 있지 않습니다. "
             "프로젝트 루트 .env 파일에 TAVILY_API_KEY를 설정해주세요."

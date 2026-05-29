@@ -6,7 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+# from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 
@@ -48,7 +48,7 @@ class SeleniumArticleCrawler:
         try:
             driver = self.create_driver()
             driver.get(url)
-            WebDriverWait(driver, self.wait_seconds)
+            # WebDriverWait(driver, self.wait_seconds)
 
             found = None
             for by, selector in self.selectors:

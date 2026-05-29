@@ -11,7 +11,7 @@ sys.path.insert(0, _KANANA_ROOT)
 sys.path.insert(0, _LEGAL_ROOT)
 
 # Config 및 Logger import
-from config import Config
+from legal_config import LegalConfig
 import utils.logger as app_logger
 from utils.logger import log_agent_action
 
@@ -37,10 +37,10 @@ async def legal_agent_main(query: str, document_path:str = None):
     print("=" * 60)
     
     # 로컬 로깅 설정에 따라 logger 재설정
-    if Config.ENABLE_LOCAL_LOGGING:
+    if LegalConfig.ENABLE_LOCAL_LOGGING:
         from utils.log_paths import create_agent_log_run_dir
 
-        log_run_dir = create_agent_log_run_dir(Config.AGENT_LOG_NAME)
+        log_run_dir = create_agent_log_run_dir(LegalConfig.AGENT_LOG_NAME)
         app_logger.setup_logger(log_run_dir=log_run_dir)
         app_logger.logger.info(f"로컬 로깅 활성화: {log_run_dir}")
     else:
@@ -59,10 +59,10 @@ async def legal_agent_main(query: str, document_path:str = None):
         document_path = document_path if document_path else None
     )
 
-    if Config.ENABLE_LOCAL_LOGGING:
+    if LegalConfig.ENABLE_LOCAL_LOGGING:
         log_agent_action("에이전트 워크플로우 시작")
 
-    if Config.ENABLE_LOCAL_LOGGING:
+    if LegalConfig.ENABLE_LOCAL_LOGGING:
         log_agent_action("사용자 입력 수신", {
             "query": query,
             "document_path": document_path
@@ -76,17 +76,17 @@ async def legal_agent_main(query: str, document_path:str = None):
     answer = None
     if result.get("answer"):
         answer = result.get("answer").answer
-        if Config.ENABLE_LOCAL_LOGGING:
+        if LegalConfig.ENABLE_LOCAL_LOGGING:
             app_logger.logger.info("\n" + "=" * 30)
             app_logger.logger.info("[최종 답변]")
             app_logger.logger.info(f"\n{answer}")
             app_logger.logger.info("\n" + "=" * 30)
 
-    if Config.ENABLE_LOCAL_LOGGING:
+    if LegalConfig.ENABLE_LOCAL_LOGGING:
         from utils.logger import log_conversation
         log_conversation(query, answer if answer is not None else "")
 
-    if Config.ENABLE_LOCAL_LOGGING:
+    if LegalConfig.ENABLE_LOCAL_LOGGING:
                 log_agent_action("에이전트 워크플로우 완료")
 
     return result

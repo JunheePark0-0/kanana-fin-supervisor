@@ -7,9 +7,9 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from config import BaseConfig
+from news_config import NewsConfig
 
-_DEFAULT_BGE_MODEL_DIR = str((_PROJECT_ROOT / BaseConfig.BGE_M3_MODEL_PATH).resolve())
+_DEFAULT_BGE_MODEL_DIR = NewsConfig.EMBEDDING_MODEL_DIR
 
 
 def get_device() -> str:

@@ -243,7 +243,7 @@ def context_reranking_node(state: LegalAgentState) -> LegalAgentState:
     if not contexts_to_rerank:
         print("⚠️ 재정렬할 컨텍스트가 없습니다. 빈 컨텍스트로 처리합니다.")
         logger.info(f"> 재정렬할 컨텍스트가 없습니다. 빈 컨텍스트로 처리합니다.")
-        return {"reranked_contexts": ContextList(list_contexts=[])}
+        return {"reranked_contexts": ContextList(list_contexts = [])}
     
     contexts_list = ContextList(list_contexts = contexts_to_rerank)
     reranked_contexts = rerank_contexts.invoke({
@@ -281,14 +281,12 @@ def answer_generating_node(state: LegalAgentState) -> LegalAgentState:
     if "reranked_contexts" in state and state["reranked_contexts"]:
         contexts = state["reranked_contexts"]
     else:
-        contexts = ContextList(list_contexts=state.get("all_contexts", []))
+        contexts = ContextList(list_contexts = state.get("all_contexts", []))
     
     answer = generate_answer.invoke({
-        "extended_query": state["extended_query"], 
+        "extended_query": state["extended_query"],
         "extracted_issues": state.get("extracted_issues"),
-        "contexts": contexts, 
-        "input_type": state["input_type"],
-        "max_new_tokens": 1024
+        "contexts": contexts,
     })
     print(f"생성된 답변 : {answer.answer}")
     logger.info(f"> 생성된 답변| {answer.answer}")
@@ -304,7 +302,7 @@ def answer_evaluating_node(state: LegalAgentState) -> LegalAgentState:
     if "reranked_contexts" in state and state["reranked_contexts"]:
         contexts = state["reranked_contexts"]
     else:
-        contexts = ContextList(list_contexts=state.get("all_contexts", []))
+        contexts = ContextList(list_contexts = state.get("all_contexts", []))
     
     answer_enough = confirm_answer.invoke({
         "extended_query": state["extended_query"], 
@@ -338,15 +336,14 @@ def answer_regenerating_node(state: LegalAgentState) -> LegalAgentState:
     if "reranked_contexts" in state and state["reranked_contexts"]:
         contexts = state["reranked_contexts"]
     else:
-        contexts = ContextList(list_contexts=state.get("all_contexts", []))
+        contexts = ContextList(list_contexts = state.get("all_contexts", []))
     
     new_answer = retry_answer.invoke({
-        "extended_query": state["extended_query"], 
+        "extended_query": state["extended_query"],
         "extracted_issues": state.get("extracted_issues"),
-        "contexts": contexts, 
-        "previous_answer": state["answer"], 
+        "contexts": contexts,
+        "previous_answer": state["answer"],
         "feedback": state["answer_enough"],
-        "max_new_tokens": 1024
     })
     print(f"재생성된 답변 : {new_answer.answer}")
     # answer_history는 operator.add reducer가 자동으로 이어붙이므로 새 답변만 반환

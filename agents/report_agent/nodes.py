@@ -27,7 +27,7 @@ from classes import (
     ReportResult,
 )
 from utils import sort_period_keys, pick_reference_index, unit_multiplier_to_million, get_quarter, extract_financial_periods, auto_slice_financials
-from config import settings
+from report_config import ReportConfig
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ __all__ = [
 
 class UpstageDocumentParseClient:
     def __init__(self):
-        self.api_key = settings.upstage_api_key
+        self.api_key = ReportConfig.upstage_api_key
         if not self.api_key:
             raise ValueError("UPSTAGE_API_KEY is required.")
         self.base_url = "https://api.upstage.ai/v1/document-digitization"
@@ -682,12 +682,12 @@ def get_model_bundle() -> ModelBundle:
     with _bundle_lock:
         if _bundle is not None:
             return _bundle
-        if settings.huggingfacehub_api_token:
-            os.environ["HUGGINGFACEHUB_API_TOKEN"] = settings.huggingfacehub_api_token
+        if ReportConfig.huggingfacehub_api_token:
+            os.environ["HUGGINGFACEHUB_API_TOKEN"] = ReportConfig.huggingfacehub_api_token
         upstage = UpstageDocumentParseClient()
         llm = LLMClient(
-            model_id=settings.kanana_model_id,
-            model_path=settings.kanana_model_path 
+            model_id=ReportConfig.kanana_model_id,
+            model_path=ReportConfig.kanana_model_path 
         )
         _bundle = ModelBundle(llm=llm, upstage=upstage)
         return _bundle

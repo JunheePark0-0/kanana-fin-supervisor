@@ -36,22 +36,26 @@ from utils.kanana_pipeline import get_kanana_pipeline
 
 from src.RAG.naive_search import NaiveSearchEngine
 from src.RAG.embedding import LawEmbeddings
-from config import Config
+from legal_config import LegalConfig
 
 import asyncio 
 
 # 문서 필터링 진행
 class NaiveSearchWithAnswer():
-    def __init__(self, collection, query : str):
+    def __init__(self, collection, query : str, pipeline=None):
         self.collection = collection
         self.query = query
-        self.pipeline, self.tokenizer = get_kanana_pipeline()
+        if pipeline is not None:
+            self.pipeline = pipeline
+            self.tokenizer = None
+        else:
+            self.pipeline, self.tokenizer = get_kanana_pipeline()
         self.query_embedding = LawEmbeddings().create_query_embedding(query)
         self.search_engine = NaiveSearchEngine(
             collection,
             self.query_embedding,
             top_k = 10,
-            save_path = Config.FILTERED_DB_PATH,
+            save_path = LegalConfig.FILTERED_DB_PATH,
         )
 
     def search(self, where : Optional[Dict] = None):
@@ -61,7 +65,7 @@ if __name__ == "__main__":
     query = input("검색할 쿼리를 입력해주세요: ")
 
     # ChromaDB 경로 설정
-    lawdb_path = Config.LAW_DB_PATH
+    lawdb_path = LegalConfig.LAW_DB_PATH
     client = chromadb.PersistentClient(path = lawdb_path)
     collection = client.get_or_create_collection("laws")
 

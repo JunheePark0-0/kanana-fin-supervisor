@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from config import AGENT_LOG_NAME, ENABLE_LOCAL_LOGGING
+from report_config import ReportConfig
 from utils.log_paths import DEFAULT_AGENT_LOG_FILENAME, get_agent_log_run_dir
 
 _configured = False
@@ -12,10 +12,10 @@ _configured = False
 def configure_report_logging(*, new_folder: bool = False) -> Path | None:
     """report_agent 실행 시 logs/report_agent/{timestamp}/agent.log 로 기록합니다."""
     global _configured
-    if not ENABLE_LOCAL_LOGGING:
+    if not ReportConfig.ENABLE_LOCAL_LOGGING:
         return None
 
-    run_dir = get_agent_log_run_dir(AGENT_LOG_NAME, new_folder=new_folder)
+    run_dir = get_agent_log_run_dir(ReportConfig.AGENT_LOG_NAME, new_folder=new_folder)
     log_file = run_dir / DEFAULT_AGENT_LOG_FILENAME
 
     root_logger = logging.getLogger()

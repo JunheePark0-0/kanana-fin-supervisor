@@ -17,7 +17,7 @@ from utils.kanana_pipeline import (
     _extract_json_candidate,
     _repair_common_json_issues,
 )
-from config import Config
+from legal_config import LegalConfig
 
 from tavily import TavilyClient
 import os
@@ -161,7 +161,7 @@ def extract_issues(extended_query: str, parsed_document: InputDocument) -> Issue
 def search_rag(combined_queries: QueryList, rag_method: str = "naive") -> RAGList:
     """RAG 검색 기능을 수행하는 함수 (질문과 문서 쟁점들을 통합하여 검색)"""
     try:
-        lawdb_path = Config.LAW_DB_PATH
+        lawdb_path = LegalConfig.LAW_DB_PATH
         client = chromadb.PersistentClient(path = lawdb_path)
         collection = client.get_or_create_collection("laws")
         
@@ -318,9 +318,9 @@ def generate_search_queries(combined_queries: QueryList, enough_context: EnoughC
 def search_web(web_search_queries: WebSearchQueries) -> WebSearchList:
     """외부 웹 검색을 수행하는 함수"""
     try:
-        from config import Config
+        from legal_config import LegalConfig
 
-        api_key = Config.TAVILY_API_KEY
+        api_key = LegalConfig.TAVILY_API_KEY
         if not api_key:
             print("Error in search_web: TAVILY_API_KEY 환경변수가 설정되지 않았습니다.")
             return WebSearchList(list_web_results = [])
@@ -475,7 +475,7 @@ def generate_answer(extended_query: str, contexts: ContextList, extracted_issues
             key=lambda x: (x.relevance_score, -x.rank if x.rank is not None else 0),
             reverse=True
         )
-        contexts = ContextList(list_contexts=sorted_contexts[:max_contexts])
+        contexts = ContextList(list_contexts = sorted_contexts[:max_contexts])
     
     # 각 컨텍스트의 텍스트 길이 제한 (원본 텍스트를 2000자로 제한)
     contexts = truncate_context_texts(contexts, max_text_length = 2000)
@@ -494,7 +494,7 @@ def generate_answer(extended_query: str, contexts: ContextList, extracted_issues
             "context_count": str(context_count),
             "min_required_docs": str(min_required)},
         output_schema = AnswerOutput,
-        max_new_tokens = 1024
+        max_new_tokens = LegalConfig.KANANA_MAX_NEW_TOKENS
     )
     
     # 참고자료 검증...

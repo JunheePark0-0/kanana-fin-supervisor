@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from config import settings
+from report_config import settings
 
 
 def check_and_download_model():

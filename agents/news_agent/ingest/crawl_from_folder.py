@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from config import INGEST_OUTPUT_DIR
+from news_config import NewsConfig
 from ingest.crawlers import get_crawler_by_press
 
 
@@ -76,7 +76,7 @@ def main():
     )
     parser.add_argument(
         "--output-dir",
-        default=INGEST_OUTPUT_DIR,
+        default=NewsConfig.INGEST_OUTPUT_DIR,
         help="크롤링 결과 저장 폴더",
     )
     args = parser.parse_args()

@@ -16,12 +16,11 @@ if str(_PROJECT_ROOT) not in sys.path:
 if str(_AGENT_ROOT) not in sys.path:
     sys.path.insert(0, str(_AGENT_ROOT))
 
-from config import BaseConfig
-from config import Config
+from legal_config import LegalConfig
 
 # 모듈 수준 싱글톤 — 프로세스 전체에서 한 번만 로드됨
 _embedding_model: Optional[SentenceTransformer] = None
-_EMBEDDING_MODEL_PATH = str((_PROJECT_ROOT / BaseConfig.BGE_M3_MODEL_PATH).resolve())
+_EMBEDDING_MODEL_PATH = LegalConfig.resolve_path(LegalConfig.BGE_M3_MODEL_PATH)
 
 def _get_embedding_model() -> SentenceTransformer:
     """BGE-M3 모델 싱글톤을 반환한다. 최초 호출 시에만 로드된다."""
@@ -93,8 +92,8 @@ class LawEmbeddings:
         np.save(filename, embeddings)
 
 if __name__ == "__main__":
-    processed_path = Path(Config.LAWS_PROCESSED_DIR) / "laws_parsed.json"
-    embedded_path = Path(Config.LAWS_PROCESSED_DIR) / "laws_embedded.npy"
+    processed_path = Path(LegalConfig.LAWS_PROCESSED_DIR) / "laws_parsed.json"
+    embedded_path = Path(LegalConfig.LAWS_PROCESSED_DIR) / "laws_embedded.npy"
     with open(processed_path, "r", encoding = 'utf-8') as f:
         laws_parsed = json.load(f)
     law_emb = LawEmbeddings()

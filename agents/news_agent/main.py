@@ -1,16 +1,8 @@
 import sys
 
 from tavily import TavilyClient
+from news_config import NewsConfig
 
-from config import (
-    AGENT_LOG_NAME,
-    COLLECTION_NAME,
-    EMBEDDING_MODEL_DIR,
-    ENABLE_LOCAL_LOGGING,
-    QDRANT_PATH,
-    SKIP_QDRANT,
-    TAVILY_API_KEY,
-)
 from embeddings import get_embeddings
 from graph.graph import build_graph_app
 from graph.nodes import init_runtime
@@ -18,9 +10,8 @@ from utils.kanana_pipeline import get_kanana_model
 from utils.log_paths import get_agent_log_run_dir
 from utils.qa_log import append_qa_log
 
-
 def main():
-    if SKIP_QDRANT:
+    if NewsConfig.SKIP_QDRANT:
         from verify_setup import run_checks
 
         print(
@@ -29,7 +20,7 @@ def main():
         )
         sys.exit(run_checks())
     embeddings = get_embeddings(
-        model_name_or_path=EMBEDDING_MODEL_DIR,
+        model_name_or_path=NewsConfig.EMBEDDING_MODEL_DIR,
         local_files_only=True,
     )
     from vectorstore import init_vectorstore
@@ -37,26 +28,26 @@ def main():
     model, tokenizer = get_kanana_model()
     try:
         _, vector_db, _ = init_vectorstore(
-            qdrant_path=QDRANT_PATH,
-            collection_name=COLLECTION_NAME,
+            qdrant_path=NewsConfig.QDRANT_PATH,
+            collection_name=NewsConfig.COLLECTION_NAME,
             embeddings=embeddings,
         )
     except RuntimeError as exc:
         msg = str(exc)
         if "already accessed by another instance" in msg:
             print("\n[Qdrant 잠금 감지]")
-            print(f"- 현재 경로: {QDRANT_PATH}")
+            print(f"- 현재 경로: {NewsConfig.QDRANT_PATH}")
             print("- 다른 프로세스(예: 코랩/다른 파이썬)가 DB를 사용 중입니다.")
             print("- 해당 프로세스를 종료한 뒤 다시 실행해 주세요.")
             print("- 또는 qdrant_db 복제본 경로를 QDRANT_PATH로 지정하면 병렬 테스트가 가능합니다.")
             return
         raise
-    tavily = TavilyClient(api_key=TAVILY_API_KEY) if TAVILY_API_KEY else TavilyClient(api_key="")
+    tavily = TavilyClient(api_key=NewsConfig.TAVILY_API_KEY) if NewsConfig.TAVILY_API_KEY else TavilyClient(api_key="")
 
     search_log_path = None
     qa_log_path = None
-    if ENABLE_LOCAL_LOGGING:
-        log_run_dir = get_agent_log_run_dir(AGENT_LOG_NAME)
+    if NewsConfig.ENABLE_LOCAL_LOGGING:
+        log_run_dir = get_agent_log_run_dir(NewsConfig.AGENT_LOG_NAME)
         search_log_path = str(log_run_dir / "news_search_log.jsonl")
         qa_log_path = str(log_run_dir / "news_qa_log.jsonl")
         print(f"로컬 로깅 활성화: {log_run_dir}")
@@ -101,18 +92,18 @@ def _get_news_app():
         return _news_app
 
     embeddings = get_embeddings(
-        model_name_or_path=EMBEDDING_MODEL_DIR,
+        model_name_or_path=NewsConfig.EMBEDDING_MODEL_DIR,
         local_files_only=True,
     )
     from vectorstore import init_vectorstore
 
     model, tokenizer = get_kanana_model()
     _, vector_db, _ = init_vectorstore(
-        qdrant_path=QDRANT_PATH,
-        collection_name=COLLECTION_NAME,
+        qdrant_path=NewsConfig.QDRANT_PATH,
+        collection_name=NewsConfig.COLLECTION_NAME,
         embeddings=embeddings,
     )
-    tavily = TavilyClient(api_key=TAVILY_API_KEY) if TAVILY_API_KEY else TavilyClient(api_key="")
+    tavily = TavilyClient(api_key=NewsConfig.TAVILY_API_KEY) if NewsConfig.TAVILY_API_KEY else TavilyClient(api_key="")
 
     init_runtime(
         model=model,
@@ -130,8 +121,8 @@ async def news_agent_main(query: str) -> dict:
     app = _get_news_app()
 
     qa_log_path = None
-    if ENABLE_LOCAL_LOGGING:
-        log_run_dir = get_agent_log_run_dir(AGENT_LOG_NAME, new_folder=True)
+    if NewsConfig.ENABLE_LOCAL_LOGGING:
+        log_run_dir = get_agent_log_run_dir(NewsConfig.AGENT_LOG_NAME, new_folder=True)
         qa_log_path = str(log_run_dir / "news_qa_log.jsonl")
 
     result = await app.ainvoke({"question": query})

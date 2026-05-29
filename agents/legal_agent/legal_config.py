@@ -1,7 +1,7 @@
 """
 Legal Agent 설정 파일
-
 환경변수나 직접 설정으로 Agent의 동작을 제어합니다.
+
 """
 
 import os
@@ -11,26 +11,19 @@ from utils.config_bootstrap import bootstrap_config
 _CTX = bootstrap_config(__file__)
 BaseConfig = _CTX.base_config
 
-class Config:
-    """Agent 전역 설정"""
+class LegalConfig(BaseConfig):
+    """Agent 전역 설정 (공통값은 BaseConfig에서 상속)"""
     
     # ============================================================================
     # 로깅 설정
     # ============================================================================
-    ENABLE_LOCAL_LOGGING = BaseConfig.ENABLE_LOCAL_LOGGING
     AGENT_LOG_NAME = "legal_agent"
 
     # ============================================================================
     # 모델 설정
     # ============================================================================
     # Kanana 모델
-    KANANA_MODEL_NAME = BaseConfig.KANANA_MODEL_NAME
     KANANA_MAX_NEW_TOKENS = BaseConfig.KANANA_MAX_NEW_TOKENS
-
-    # ============================================================================
-    # API 키 (루트 .env)
-    # ============================================================================
-    TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")
 
     # ============================================================================
     # 경로 설정
@@ -51,3 +44,5 @@ class Config:
             "로컬 로깅": "활성화" if cls.ENABLE_LOCAL_LOGGING else "비활성화",
             "모델": cls.KANANA_MODEL_NAME,
         }
+
+

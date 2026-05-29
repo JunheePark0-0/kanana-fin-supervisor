@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from config import Config
+from legal_config import LegalConfig
 
 class ParsingAndChunking():
     def __init__(self):
@@ -533,7 +533,7 @@ class ParsingAndChunking():
         return packs
 
     def save_json_file(self, output, file_name):
-        parsed_dir = Path(Config.LAWS_PARSED_DIR)
+        parsed_dir = Path(LegalConfig.LAWS_PARSED_DIR)
         parsed_dir.mkdir(parents = True, exist_ok = True)
         file_path = parsed_dir / f"{file_name}_parsed.json"
         with open(file_path, "w", encoding = 'utf-8') as f:
@@ -542,7 +542,7 @@ class ParsingAndChunking():
 
     def parse_and_chunk(self, folder_name, max_len, child_max_len):
         folder_path = Path(folder_name)
-        law_jsons_folder = folder_path if folder_path.is_absolute() else Path(Config.LAWS_RAW_DIR) / folder_name
+        law_jsons_folder = folder_path if folder_path.is_absolute() else Path(LegalConfig.LAWS_RAW_DIR) / folder_name
         law_json_paths = list[Path](law_jsons_folder.glob("*.json"))
         laws_parsed_chunked = []
 
@@ -563,7 +563,7 @@ if __name__ == "__main__":
     p_c = ParsingAndChunking()
     laws_outputs = p_c.parse_and_chunk("Laws", max_len = 250, child_max_len = 200)
 
-    processed_dir = Path(Config.LAWS_PROCESSED_DIR)
+    processed_dir = Path(LegalConfig.LAWS_PROCESSED_DIR)
     processed_dir.mkdir(parents = True, exist_ok = True)
     with open(processed_dir / "laws_parsed.json", "w", encoding = 'utf-8') as f:
         json.dump(laws_outputs, f, ensure_ascii = False, indent = 4)
