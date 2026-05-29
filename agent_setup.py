@@ -45,7 +45,19 @@ def download_data() -> None:
     """
     Hugging Face에서 필요한 데이터를 다운로드하는 함수 (최초 1회 실행).
     """
-    pass
+    from huggingface_hub import snapshot_download
+
+    data_dir = _resolve_from_project_root(BaseConfig.DATA_DIR)
+    data_dir.mkdir(parents = True, exist_ok = True)
+
+    snapshot_download(
+        repo_id = "munchkincat/Kanana_Agent-data",
+        repo_type = "dataset",
+        local_dir = str(data_dir),
+        local_dir_use_symlinks = False,
+    )
+
+    print(f"✅ 데이터가 `{data_dir}`에 저장되었습니다.")
 
 
 def has_local_kanana(save_dir: Path) -> bool:
