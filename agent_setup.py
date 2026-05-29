@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from config import BaseConfig
+from utils.selenium_runtime import ensure_linux_selenium_runtime
 
 PROJECT_ROOT = BaseConfig.PROJECT_ROOT
 
@@ -147,6 +148,7 @@ def ensure_dirs() -> None:
 
 def main() -> None:
     print("초기 환경 점검을 시작합니다.")
+    ensure_linux_selenium_runtime()
     ensure_kanana_model()
     ensure_bge_m3_model()
     ensure_data()
