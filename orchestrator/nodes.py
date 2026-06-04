@@ -10,7 +10,13 @@ from orchestrator.functions import load_prompt, extract_company_name, map_comp_n
 from utils.kanana_pipeline import call_kanana, call_kanana_structured
 from utils.logger import log_agent_action, save_orchestrator_final_response
 
-from orchestrator.converters import legal_raw_to_agent_response, news_raw_to_agent_response, report_raw_to_agent_response, stock_raw_to_agent_response, trend_raw_to_agent_response
+from orchestrator.converters import (
+    legal_raw_to_agent_response, 
+    news_raw_to_agent_response, 
+    report_raw_to_agent_response, 
+    stock_raw_to_agent_response, 
+    trend_raw_to_agent_response
+)
 
 
 async def _run_logged(agent_name: str, coro) -> AgentResponse:
@@ -31,10 +37,37 @@ async def _run_logged(agent_name: str, coro) -> AgentResponse:
 async def routing_node(state: OrchestratorState) -> OrchestratorState:
     """
     라우팅 노드: 질문을 분석해 필요한 에이전트를 호출하는 노드
+
+    target_agent가 있다면 그 에이전트만 선택하여 진행, 라우팅은 진행 x
     """
     user_input = state["user_input"]
     query = user_input.query
     document_path = user_input.document_path
+
+    # target_agent 처리 (프론트에서 탭별로 다르게 선택)
+    target_agent = state.get("target_agent")
+    if target_agent:
+        log_agent_action(
+            "오케스트레이터: 라우팅 생략 (사용자가 직접 에이전트 선택)",
+            {"target_agent": target_agent}
+        )
+
+        # ticker 추출은 동일하게 수행
+        input_ticker = user_input.ticker
+        query_ticker = None
+        if not input_ticker:
+            comp_list = list(Config.TICKER_MAP.keys())
+            extracted_company = extract_company_name(query, comp_list)
+            query_ticker = map_comp_name_to_ticker(extracted_company) if extracted_company else None
+
+        ticker = input_ticker.strip().upper() if input_ticker else query_ticker
+
+        return {
+            **state,
+            "selected_agents": [target_agent],
+            "ticker": ticker,
+            "agent_requests": None,
+        }
 
     log_agent_action(
         "오케스트레이터: 라우팅 시작",
