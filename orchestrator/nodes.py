@@ -3,6 +3,9 @@ import operator
 import asyncio
 import time
 
+from utils.ticker_map import TICKER_MAP
+from utils.agent_keywords import KOREAN_COMPANIES, PERSON_KEYWORDS, NEWS_KEYWORDS, TREND_KEYWORDS, AGENT_KEYWORDS
+
 from orchestrator.states import OrchestratorState
 from orchestrator.schemas import UserInput, AgentName, AgentRequest, AgentResponse, FinalResponse
 from config import BaseConfig as Config
@@ -34,6 +37,19 @@ async def _run_logged(agent_name: str, coro) -> AgentResponse:
     )
     return response
 
+def _should_include_news_agent(query: str, extracted_company: str | None) -> bool:
+    if extracted_company:
+        return True
+    if any(c in query for c in KOREAN_COMPANIES):
+        return True
+    if any(kw in query.lower() for kw in PERSON_KEYWORDS):
+        return True
+    if any(kw in query for kw in NEWS_KEYWORDS):
+        return True
+    if any(kw in query for kw in TREND_KEYWORDS):
+        return True
+    return False
+
 async def routing_node(state: OrchestratorState) -> OrchestratorState:
     """
     라우팅 노드: 질문을 분석해 필요한 에이전트를 호출하는 노드
@@ -43,6 +59,9 @@ async def routing_node(state: OrchestratorState) -> OrchestratorState:
     user_input = state["user_input"]
     query = user_input.query
     document_path = user_input.document_path
+
+    if document_path and document_path.strip().lower() in ("none", "", "null"):
+        document_path = None
 
     # target_agent 처리 (프론트에서 탭별로 다르게 선택)
     target_agent = state.get("target_agent")
@@ -56,7 +75,7 @@ async def routing_node(state: OrchestratorState) -> OrchestratorState:
         input_ticker = user_input.ticker
         query_ticker = None
         if not input_ticker:
-            comp_list = list(Config.TICKER_MAP.keys())
+            comp_list = list(TICKER_MAP.keys())
             extracted_company = extract_company_name(query, comp_list)
             query_ticker = map_comp_name_to_ticker(extracted_company) if extracted_company else None
 
@@ -68,6 +87,10 @@ async def routing_node(state: OrchestratorState) -> OrchestratorState:
             "ticker": ticker,
             "agent_requests": None,
         }
+    
+    if document_path:
+        selected = ["Legal Agent"] if (query or "").strip() else ["Report Agent"]
+        return {**state, "selected_agents": selected, "ticker": None, "agent_requests": None}
 
     log_agent_action(
         "오케스트레이터: 라우팅 시작",
@@ -94,7 +117,7 @@ async def routing_node(state: OrchestratorState) -> OrchestratorState:
         }
     
     # 기업명 추출, 티커 매핑
-    comp_list = list(Config.TICKER_MAP.keys())
+    comp_list = list(TICKER_MAP.keys())
     extracted_company = extract_company_name(query, comp_list)
     query_ticker = map_comp_name_to_ticker(extracted_company) if extracted_company else None
 
@@ -108,17 +131,41 @@ async def routing_node(state: OrchestratorState) -> OrchestratorState:
         output_schema = AgentRequest
     )
 
+    selected_agents = routing_response.selected_agents
+
+    # Legal Agent 키워드 없으면 제거
+    if "Legal Agent" in selected_agents and not any(kw in query for kw in AGENT_KEYWORDS["Legal Agent"]):
+        selected_agents = [a for a in selected_agents if a != "Legal Agent"]
+
+    # Stock Agent: ticker 있고 키워드 있으면 추가
+    if "Stock Agent" not in selected_agents and query_ticker and any(kw in query for kw in AGENT_KEYWORDS["Stock Agent"]):
+        selected_agents.append("Stock Agent")
+
+    # News Agent: 조건 맞으면 추가
+    if "News Agent" not in selected_agents and _should_include_news_agent(query, extracted_company):
+        selected_agents.append("News Agent")
+
+    # Trend Agent: 키워드 있으면 추가
+    if "Trend Agent" not in selected_agents and any(kw in query for kw in AGENT_KEYWORDS["Trend Agent"]):
+        selected_agents.append("Trend Agent")
+
+    # 아무것도 안 남으면 News Agent 기본 선택
+    if not selected_agents:
+        selected_agents = ["News Agent"]
+
+    print(f"🧭 최종 선택된 에이전트: {selected_agents}")
+
     log_agent_action(
         "오케스트레이터: 라우팅 완료",
         {
-            "selected_agents": routing_response.selected_agents,
+            "selected_agents": selected_agents,
             "ticker": ticker,
         },
     )
 
     return {
         **state,
-        "selected_agents": routing_response.selected_agents,
+        "selected_agents": selected_agents,
         "ticker": ticker,
         "agent_requests": routing_response
     }
@@ -133,17 +180,10 @@ async def run_agents_node(state: OrchestratorState) -> OrchestratorState:
     ticker = state.get("ticker")
 
     selected_agents = state["selected_agents"]
-
-    if ticker and not "Stock Agent" in selected_agents:
-        selected_agents.append("Stock Agent")
-
-    tasks = []
-    agent_responses: List[AgentResponse] = []
-
     skipped: List[AgentResponse] = []
-    # Stock Agent 선택되었는데 ticker가 없는 경우
+
     if "Stock Agent" in selected_agents and not ticker:
-        selected_agents = [agent for agent in selected_agents if agent != "Stock Agent"]
+        selected_agents = [a for a in selected_agents if a != "Stock Agent"]
         skipped.append(AgentResponse(
             agent_name = "Stock Agent",
             answer = "ticker를 확인할 수 없어 Stock Agent를 실행하지 않았습니다.",
@@ -151,12 +191,15 @@ async def run_agents_node(state: OrchestratorState) -> OrchestratorState:
         ))
 
     if "Report Agent" in selected_agents and not document_path:
-        selected_agents = [agent for agent in selected_agents if agent != "Report Agent"]
+        selected_agents = [a for a in selected_agents if a != "Report Agent"]
         skipped.append(AgentResponse(
             agent_name = "Report Agent",
             answer = "PDF 문서가 첨부되지 않아 Report Agent를 실행하지 않았습니다.",
             sources = []
         ))
+
+    tasks = []
+    agent_responses: List[AgentResponse] = []
 
     log_agent_action(
         "오케스트레이터: 에이전트 실행 준비",
@@ -175,7 +218,7 @@ async def run_agents_node(state: OrchestratorState) -> OrchestratorState:
         elif agent_name == "Report Agent":
             if not document_path:
                 raise ValueError("Report Agent 실행에는 document_path(PDF 경로)가 필요합니다.")
-            tasks.append(_run_logged(agent_name, run_report_agent(document_path, query)))
+            tasks.append(_run_logged(agent_name, run_report_agent(document_path)))
         elif agent_name == "Stock Agent":
             if not ticker:
                 raise ValueError("Stock Agent 실행에는 ticker가 필요합니다.")
@@ -210,9 +253,9 @@ async def summarize_node(state: OrchestratorState) -> OrchestratorState:
     )
     all_answers = "\n\n".join([response._to_report_text() for response in agent_responses])
     all_sources = "\n".join(
-        f"{response.agent_name}: {', '.join(response.sources)}" 
+        f"{response.agent_name}: {', '.join(response.sources)}"
         for response in agent_responses if response.sources
-        )
+    )
     summary_prompt = load_prompt("summary_prompt")
     summary_response = call_kanana(
         summary_prompt,
@@ -257,11 +300,11 @@ async def run_news_agent(query: str) -> AgentResponse:
     except Exception as e:
         return news_raw_to_agent_response(e)
 
-async def run_report_agent(document_path: str, task: str) -> AgentResponse:
+async def run_report_agent(document_path: str) -> AgentResponse:
     from agents.report_agent.main import report_agent_main
 
     try:
-        raw_output = await report_agent_main(pdf_path = document_path, task = task)
+        raw_output = await report_agent_main(pdf_path=document_path)
         return report_raw_to_agent_response(raw_output)
     except Exception as e:
         return report_raw_to_agent_response(e)

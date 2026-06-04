@@ -2,6 +2,7 @@
 logs/
 data/
 Kanana_Model/
+kanana_history/
 
 # Python 가상환경
 .venv/

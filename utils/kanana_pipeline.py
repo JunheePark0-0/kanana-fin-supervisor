@@ -217,11 +217,12 @@ def call_kanana_structured(
 
     schema_prompt = (
         "\n\n[출력 형식]\n"
-        "아래 형식을 따르는 **하나의 JSON 객체만** 출력하세요.\n"
-        "키 이름과 값만 포함된 JSON 형태로 답변해야 합니다.\n\n"
-        f"{output_schema.model_json_schema()}\n\n"
+        "아래 예시와 동일한 구조의 **JSON 객체 하나만** 출력하세요.\n"
+        "설명, 마크다운, 코드블록 없이 JSON만 출력하세요.\n\n"
+        f"{_build_example_json(output_schema)}\n\n"
         "[중요]\n"
-        "- 반드시 최상위에 실제 필드 값들만 있는 JSON 객체를 출력하세요.\n\n"
+        "- 위 예시의 키 이름을 그대로 사용하고, 실제 값만 채우세요.\n"
+        "- JSON 외 어떤 텍스트도 출력하지 마세요.\n\n"
     )
     full_prompt = system_prompt + schema_prompt
 
@@ -236,6 +237,8 @@ def call_kanana_structured(
 
     def _parse_response(text: str) -> Any:
         json_candidate = _extract_json_candidate(text)
+        json_candidate = _repair_common_json_issues(json_candidate)
+        json_candidate = _close_truncated_json(json_candidate)
         decoder = json.JSONDecoder()
         data, _ = decoder.raw_decode(json_candidate.strip())
         if transform_data is not None:
@@ -272,6 +275,27 @@ def call_kanana_structured(
             log_error(e, f"call_kanana_structured - Schema: {output_schema.__name__}")
         raise
 
+def _build_example_json(schema: type) -> str:
+    """Pydantic 모델에서 예시 json 문자열 생성"""
+    fields = schema.model_fields
+    example = {}
+    for name, field in fields.items():
+        annotation = str(field.annotation)
+        if "Literal" in annotation:
+            import re
+            vals = re.findall(r"['\"]([^'\"]+)['\"]", annotation)
+            example[name] = vals[0] if vals else "value"
+        elif "List" in annotation or "list" in annotation:
+            example[name] = ["예시 항목"]
+        elif "float" in annotation:
+            example[name] = 0.0
+        elif "int" in annotation:
+            example[name] = 0
+        elif "str" in annotation:
+            example[name] = field.description or f"{name} 값"
+        else:
+            example[name] = f"{name} 값"
+    return json.dumps(example, ensure_ascii=False, indent=2)
 
 def _extract_first_json(text: Any) -> str:
     start = text.find("{")
@@ -317,6 +341,8 @@ def _repair_common_json_issues(raw_text: str) -> str:
     repaired = raw_text.strip()
     repaired = repaired.replace(""", "\"").replace(""", "\"").replace("'", "'")
     repaired = re.sub(r",\s*([}\]])", r"\1", repaired)
+    repaired = _escape_newlines_in_strings(repaired)
+    repaired = _close_truncated_json(repaired)
     return repaired
 
 
@@ -364,3 +390,58 @@ def _extract_output_only(text: str) -> str:
             return match.group(1).replace("\\n", "\n").replace('\\"', '"').strip()
 
     return stripped
+
+def _escape_newlines_in_strings(text: str) -> str:
+    """JSON 문자열 값 안의 실제 줄바꿈을 \\n으로 치환"""
+    result = []
+    in_string = False
+    escape = False
+    
+    for ch in text:
+        if escape:
+            result.append(ch)
+            escape = False
+            continue
+        if ch == "\\" and in_string:
+            result.append(ch)
+            escape = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            result.append(ch)
+            continue
+        if in_string and ch == "\n":
+            result.append("\\n")  # 이스케이프로 교체
+            continue
+        if in_string and ch == "\r":
+            continue  # \r 제거
+        result.append(ch)
+    
+    return "".join(result)
+
+def _close_truncated_json(text: str) -> str:
+    """토큰 한도로 잘린 JSON의 미완성 문자열·객체를 닫음."""
+    repaired = text.rstrip()
+    if not repaired:
+        return repaired
+
+    in_string = False
+    escape = False
+    for ch in repaired:
+        if escape:
+            escape = False
+            continue
+        if ch == "\\" and in_string:
+            escape = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+
+    if in_string:
+        repaired += '"'
+
+    open_braces = repaired.count("{") - repaired.count("}")
+    open_brackets = repaired.count("[") - repaired.count("]")
+    repaired += "]" * max(0, open_brackets)
+    repaired += "}" * max(0, open_braces)
+    return repaired

@@ -1,60 +1,10 @@
-# 사용자의 질문에서 기업 이름을 추출하는 프롬프트
-extract_company_name_prompt:
-  role: |
-    당신은 사용자의 질문에서 기업 이름을 추출하는 전문가입니다.
-    comp_list에 있는 기업 이름만 추출하십시오.
-  instructions: |
-    사용자의 질문에 포함된 기업 이름을 추출하십시오.
-    [출력 규칙]
-    - 기업명이 있으면 기업명만 단어 하나로 출력하십시오. (예: 엔비디아)
-    - 기업명이 없으면 반드시 "NONE"만 출력하십시오.
-    - 설명, 문장, 부가설명 없이 단어만 출력하십시오.
-    - comp_list에 없는 기업은 "NONE"으로 출력하십시오.
-    - 한국어 표기와 영어 표기 모두 인식하십시오. (예: "엔비디아" = "NVIDIA")
-
-    [예시]
-    comp_list: ["엔비디아", "NVIDIA", "NVDA", "애플", "Apple", "AAPL", "테슬라", "Tesla", "TSLA", "넷플릭스", "Netflix", "NFLX", "구글", "Google", "GOOG", ...]
-
-    query: "엔비디아 최근 실적이 어때?"
-    출력: 엔비디아
-
-    query: "NVIDIA 주가 전망 알려줘"
-    출력: NVIDIA
-
-    query: "애플이랑 구글 중에 어디가 더 좋아?"
-    출력: 애플
-
-    query: "테슬라 요즘 어때?"
-    출력: 테슬라
-
-    query: "요즘 금리 인상이 시장에 미치는 영향은?"
-    출력: NONE
-
-    query: "삼성전자 주가는 어때?"
-    출력: NONE
-
-    query: "넷플릭스 최근 뉴스 알려줘"
-    출력: 넷플릭스
-
-    query: "나이키랑 스타벅스 실적 비교해줘"
-    출력: 나이키
-
-    query: "Walmart 요즘 어떤 전략 쓰고 있어?"
-    출력: Walmart
-
-    query: "비트코인 전망은?"
-    출력: NONE
-
-  inputs: |
-    {query} : 사용자 질문
-    {comp_list} : 기업 이름 리스트
-
 # 사용자의 질문을 분석하여 어떤 에이전트가 필요한지 판단하는 프롬프트
 routing_prompt:
   role: |
-    당신은 사용자의 요청을 분석하여 관련된 모든 에이전트를 선택하는 **금융/법률 오케스트레이터**입니다.
+    당신은 사용자의 요청을 분석하여 관련 에이전트를 선택하는 **금융/법률 오케스트레이터**입니다.
+    질문과 명확히 관련된 에이전트만 선택하십시오. 불확실하면 선택하지 마십시오.
   instructions: |
-    다음 5가지 전문 에이전트 중 요청과 조금이라도 관련 있는 에이전트는 모두 선택하십시오.
+    다음 5가지 전문 에이전트 중 질문과 명확히 관련된 에이전트만 선택하십시오.
     단, 아래의 하드 제약 조건은 반드시 지키십시오.
 
     [에이전트 목록 및 역할]
@@ -65,16 +15,17 @@ routing_prompt:
     5. Trend Agent: 금리·환율·업황 등 거시경제 및 시장 전반 트렌드 분석
 
     [하드 제약 조건 — 반드시 준수]
-    - Report Agent: document_path가 비어 있으면 절대 선택 불가. 예외 없음.
-    - Stock Agent: ticker가 비어 있으면 절대 선택 불가. 예외 없음.
-    - Legal Agent: 법률·계약·규제·소송과 전혀 무관한 질문에는 선택하지 마십시오.
+    - Legal Agent: 질문에 법률·계약·소송·규제·판례·위반·처벌 단어가 없으면 절대 선택 불가
+    - Stock Agent: ticker가 빈 문자열이면 절대 선택 불가
 
-    [선택 가이드 — 관련성 있으면 적극 선택]
-    - 특정 기업이 언급되면 → News Agent 선택
+    [문서 첨부 시 자동 라우팅 — 코드에서 처리, LLM은 이 섹션 무시]
+    - 이 항목은 코드가 자동 처리합니다. LLM이 선택할 필요 없습니다.
+
+    [선택 가이드 — 문서가 없을 때만 적용]
+    - 특정 기업이 언급되면 → News Agent 반드시 선택
     - ticker가 있고 투자·주가·전망 관련이면 → Stock Agent 선택
     - 거시경제(금리·환율·업황·경기)가 언급되면 → Trend Agent 선택
-    - document_path가 있고 재무·실적 관련이면 → Report Agent 선택
-    - 법률·계약·규제·소송이 언급되면 → Legal Agent 선택
+    - 법률·계약·규제·소송이 언급되면 → Legal Agent 선택 (document_path 없을 때)
     - 질문이 광범위하거나 복합적이면 → 해당하는 에이전트 모두 선택
 
     [선택 예시]
@@ -84,19 +35,17 @@ routing_prompt:
 
     - "엔비디아 실적 등 최근 뉴스 알려줘" (ticker = NVDA, document_path 없음)
       → ["News Agent", "Stock Agent"]
-      # 기업 뉴스 + 투자의견
+      # 기업명 언급 → News Agent 필수, ticker 있고 주가 관련 → Stock Agent
 
     - "금리 인상이 반도체 업황에 미치는 영향은?" (ticker 없음, document_path 없음)
       → ["Trend Agent", "News Agent"]
       # 거시경제 + 관련 최신 뉴스
 
-    - "마이크로소프트 주가 어때?" (ticker = MSFT, document_path 없음)
-      → ["Stock Agent", "Trend Agent"]
-      # 투자의견 + 시장트렌드
-
-    - "이 계약서 검토해줘" (document_path 있음)
+    - "개인정보 유출 시 법적 책임은?" (ticker 없음, document_path 없음)
       → ["Legal Agent"]
-      # 계약서 조항 검토 및 법률 검토
+
+    - "계약 위반으로 손해배상 청구할 수 있어?" (ticker 없음, document_path 없음)
+      → ["Legal Agent"]
 
     [출력 규칙]
     - 반드시 아래의 JSON 형식만 출력하고, 사족을 붙이지 마십시오.

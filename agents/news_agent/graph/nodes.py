@@ -515,6 +515,7 @@ def gen_final_answer(state):
 [분량 기준]
 - FACTUAL 답변은 최소 400자 이상 작성하세요.
 - 수치 근거 → 시장 반응 → 향후 전망 순으로 구성하세요.
+- 절대로 ##, ###, #### 마크다운 헤더를 사용하지 마세요. 소제목은 반드시 [시장 반응] 형태로만 표기하세요.
 [답변]:"""
     final = _llm([{"role": "user", "content": prompt}], max_tokens=1024, temp=0.2).strip()
     all_contexts = state.get("all_contexts", [])
@@ -668,51 +669,35 @@ def format_answer(state):
     question = state.get("question", "")
     internal_docs = state.get("internal_docs", [])
     external_docs = state.get("external_docs", [])
-    ragas_scores = state.get("ragas_scores", {})
     failed_claims = state.get("failed_claims", [])
+
     valid_urls = [d.metadata.get("url", "") for d in internal_docs]
     answer = clean_fake_urls(answer, valid_urls)
     answer = clean_report_phrases(answer)
 
-    internal_sources = []
+    # 출처 통합 (내부 DB + 외부 검색 구분 없이)
+    sources = []
     for d in internal_docs:
         title = d.metadata.get("title", "")
         date = d.metadata.get("date", "")
         press = d.metadata.get("press", "")
         if title:
-            internal_sources.append(f"  - {title} ({press} | {date})")
-    external_sources = []
+            sources.append(f"  - {title} ({press} | {date})")
     for d in external_docs:
         title = d.get("title", "")
         url = d.get("url", "")
         if title:
-            external_sources.append(f"  - {title}\n    {url}")
+            sources.append(f"  - {title}\n    {url}")
 
-    source_block = ""
-    if internal_sources:
-        source_block += "[내부 DB]\n" + "\n".join(internal_sources)
-    if external_sources:
-        if source_block:
-            source_block += "\n\n"
-        source_block += "[외부 검색]\n" + "\n".join(external_sources)
-    if not source_block:
-        source_block = "출처 없음"
-
-    score_block = ""
-    if ragas_scores:
-        score_block = (
-            f"\n\n[검증 점수]\n"
-            f"  - 근거성(faithfulness)  : {ragas_scores.get('faithfulness', 0):.2f}\n"
-            f"  - 적합성(relevancy)     : {ragas_scores.get('answer_relevancy', 0):.2f}\n"
-            f"  - 컨텍스트(recall)      : {ragas_scores.get('context_recall', 0):.2f}"
-        )
+    source_block = "\n".join(sources) if sources else "출처 없음"
 
     failed_block = ""
     if failed_claims:
         failed_block = "\n\n[검증 유의사항]\n" + "\n".join(f"  - {c}" for c in failed_claims)
+
     formatted = (
-        f"{answer}\n\n{'='*40}\n[질문] {question}\n{'='*40}\n[출처]\n{source_block}"
-        f"{score_block}{failed_block}"
+        f"{answer}\n\n{'='*40}\n"
+        f"{failed_block}"
     )
     return {"final_answer": formatted}
 

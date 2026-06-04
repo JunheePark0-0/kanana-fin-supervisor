@@ -25,7 +25,13 @@ async def stock_agent_main(ticker: str):
     crawling_result = await run_crawling(ticker)
 
     print("\n[2/2] Multi Agent 토론 시작")
-    final_report = await run_agent_debate(ticker)
+    debate_result = await run_agent_debate(ticker)
+    if isinstance(debate_result, dict):
+        final_report = debate_result.get("final_report", "합의안 도출에 실패했습니다.")
+        sources = debate_result.get("sources", [])
+    else:
+        final_report = debate_result
+        sources = []
 
     print("\n" + "=" * 60)
     print(f"✅ [{ticker}] 통합 파이프라인 완료")
@@ -35,6 +41,7 @@ async def stock_agent_main(ticker: str):
         "ticker": ticker,
         "crawling_summary": crawling_result,
         "final_report": final_report,
+        "sources": sources,
     }
 
 

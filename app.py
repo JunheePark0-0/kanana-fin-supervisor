@@ -1,3 +1,4 @@
+import html
 import streamlit as st
 import requests
 import os
@@ -6,11 +7,13 @@ from datetime import datetime
 import json
 import tempfile
 
+from orchestrator.schemas import FinalResponse
+
 # ── 페이지 설정 ──────────────────────────────────────────────
 st.set_page_config(
-    page_title="Kanana Agent",
-    page_icon="🤖",
-    layout="centered",
+    page_title = "Kanana Agent",
+    page_icon = "🤖",
+    layout = "centered",
 )
 
 # ── 스타일 ───────────────────────────────────────────────────
@@ -134,6 +137,13 @@ st.markdown("""
         padding: 0.1rem 0.45rem;
         font-size: 0.7rem;
         margin: 0.15rem 0.15rem 0 0;
+        word-break: break-all;
+    }
+    a.source-tag {
+        text-decoration: none;
+    }
+    a.source-tag:hover {
+        text-decoration: underline;
     }
     .error-box {
         background: #fff5f5;
@@ -185,16 +195,16 @@ st.markdown("""
 # ── 상수 ─────────────────────────────────────────────────────
 FASTAPI_URL = "http://localhost:8000"
 HISTORY_DIR = Path("./kanana_history")
-HISTORY_DIR.mkdir(exist_ok=True)
+HISTORY_DIR.mkdir(exist_ok = True)
 
-# ── 탭 정의: (이름, 아이콘, target_agents, 필수필드, 선택필드) ──
+# ── 탭 정의: (이름, 아이콘, target_agent, 필수필드, 선택필드) ──
 TABS = [
-    ("Orchestrator", "🧠", None,               ["query"],   ["ticker", "file"]),
-    ("Legal Agent",  "⚖️",  ["Legal Agent"],    ["query"],   ["file"]),
-    ("News Agent",   "📰", ["News Agent"],      ["query"],   []),
-    ("Report Agent", "📄", ["Report Agent"],    ["file"],    []),
-    ("Stock Agent",  "📈", ["Stock Agent"],     ["ticker"],  []),
-    ("Trend Agent",  "🔍", ["Trend Agent"],     ["query"],   []),
+    ("Orchestrator", "🧠", None,               [],          ["query", "ticker", "file"]),
+    ("Legal Agent",  "⚖️",  "Legal Agent",    ["query"],   ["file"]),
+    ("News Agent",   "📰", "News Agent",      ["query"],   []),
+    ("Report Agent", "📄", "Report Agent",    ["file"],    []),
+    ("Stock Agent",  "📈", "Stock Agent",     ["ticker"],  []),
+    ("Trend Agent",  "🔍", "Trend Agent",     ["query"],   []),
     ("History",      "🕓", "HISTORY",           [],           []),
 ]
 
@@ -217,13 +227,13 @@ def save_history(tab_name, query, ticker, result):
         "all_answers": result.get("all_answers", []),
     }
     path = HISTORY_DIR / f"{ts}_{tab_name.replace(' ', '_')}.json"
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(record, f, ensure_ascii=False, indent=2)
+    with open(path, "w", encoding = "utf-8") as f:
+        json.dump(record, f, ensure_ascii = False, indent = 2)
 
 
 def load_history():
     records = []
-    for p in sorted(HISTORY_DIR.glob("*.json"), reverse=True):
+    for p in sorted(HISTORY_DIR.glob("*.json"), reverse = True):
         try:
             with open(p, encoding="utf-8") as f:
                 records.append(json.load(f))
@@ -241,37 +251,103 @@ def save_uploaded_file(uploaded_file):
         return tmp.name
 
 
+def result_to_final_report(result: dict) -> str:
+    """터미널 print(final_report)와 동일한 텍스트 형식."""
+    return FinalResponse.model_validate(result)._to_final_report()
+
+
+def _format_source_tag(source) -> str:
+    """'제목||URL' 또는 URL/텍스트 문자열을 출처 태그로 변환."""
+    if isinstance(source, dict):
+        label = (source.get("label") or "").strip()
+        url = (source.get("url") or "").strip()
+        s = f"{label}||{url}" if url else label
+    else:
+        s = str(source).strip()
+    if "||" in s:
+        label, url = s.split("||", 1)
+        label, url = label.strip(), url.strip()
+    elif s.startswith(("http://", "https://")):
+        label, url = s, s
+    else:
+        label, url = s, None
+
+    esc_label = html.escape(label or url or "")
+    if url:
+        esc_url = html.escape(url)
+        return (
+            f'<a class="source-tag" href="{esc_url}" '
+            f'target="_blank" rel="noopener noreferrer">🔗 {esc_label}</a>'
+        )
+    return f'<span class="source-tag">{esc_label}</span>'
+
+
+def render_sources(result: dict):
+    """에이전트별 출처를 하단에 모아 표시."""
+    agents_with_sources = [
+        a for a in result.get("all_answers", [])
+        if a.get("sources")
+    ]
+    if not agents_with_sources:
+        return
+
+    st.markdown("### 📎 출처")
+    for agent in agents_with_sources:
+        name = html.escape(str(agent.get("agent_name", "")))
+        tags = "".join(_format_source_tag(s) for s in agent["sources"])
+        st.markdown(
+            f"""
+            <div class="agent-box">
+                <div class="agent-name">🤖 {name}</div>
+                <div style="display:flex; flex-wrap:wrap; gap:0.3rem; margin-top:0.3rem;">{tags}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
 def render_response(result: dict):
-    summary = result.get("summary", "")
+    summary = result.get("summary", "").replace("~~", "~")  # html.escape 제거
     all_answers = result.get("all_answers", [])
+
+    # 요약 박스
     st.markdown(
         f'<div class="response-box">📋 <strong>요약</strong><br><br>{summary}</div>',
         unsafe_allow_html=True,
     )
+
+    # 에이전트별 상세 응답
     if all_answers:
         st.markdown("<br>**에이전트별 상세 응답**", unsafe_allow_html=True)
         for agent in all_answers:
-            sources = agent.get("sources", [])
-            source_tags = "".join(
-                f'<span class="source-tag">🔗 {s}</span>' for s in sources
-            ) if sources else '<span class="source-tag">출처 없음</span>'
-            st.markdown(f"""
-            <div class="agent-box">
-                <div class="agent-name">🤖 {agent.get('agent_name','')}</div>
-                <div>{agent.get('answer','')}</div>
-                <div style="margin-top:0.6rem;">{source_tags}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            name = html.escape(str(agent.get("agent_name", "")))
+            body = agent.get("answer", "") or "_답변 없음_"
+            body = body.replace("~~", "~")
+            body_escaped = html.escape(body)
+            st.markdown(
+                f"""
+                <div class="agent-box">
+                    <div class="agent-name">🤖 {name}</div>
+                    <div style="white-space: pre-wrap;">{body_escaped}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
+    # 출처 별도 섹션
+    render_sources(result)
 
-def call_api(query, ticker, document_path, target_agents):
+def call_api(query, ticker, document_path, target_agent):
+    if document_path == "None":
+        document_path = None
+    print(f"📤 document_path 변환 후: {repr(document_path)}")
     payload = {
         "query": query,
         "ticker": ticker or None,
         "document_path": document_path,
-        "target_agents": target_agents,
+        "target_agent": target_agent,
     }
-    response = requests.post(f"{FASTAPI_URL}/ask", json=payload, timeout=300)
+    response = requests.post(f"{FASTAPI_URL}/ask", json = payload, timeout = 600)
     response.raise_for_status()
     return response.json()
 
@@ -281,24 +357,24 @@ with st.sidebar:
     st.markdown("**🤖 Kanana**")
     st.markdown("---")
     for i, (name, icon, _, _req, _opt) in enumerate(TABS):
-        if st.button(f"{icon}  {name}", key=f"tab_{i}"):
+        if st.button(f"{icon}  {name}", key = f"tab_{i}"):
             st.session_state.active_tab = i
             st.session_state.history_detail = None
             st.rerun()
     st.markdown("---")
     st.markdown(
         f'<p style="font-size:0.72rem; color:#9ca3af;">서버: <code style="color:#4f6ef7">{FASTAPI_URL}</code></p>',
-        unsafe_allow_html=True,
+        unsafe_allow_html = True,
     )
 
 
 # ── 메인 ─────────────────────────────────────────────────────
-tab_name, tab_icon, target_agents, required_fields, optional_fields = TABS[st.session_state.active_tab]
+tab_name, tab_icon, target_agent, required_fields, optional_fields = TABS[st.session_state.active_tab]
 
 # ════════════════════════════════════════════════════════
 # 히스토리 탭
 # ════════════════════════════════════════════════════════
-if target_agents == "HISTORY":
+if target_agent == "HISTORY":
     st.title("🕓 History")
     st.markdown("과거 분석 기록을 날짜/시간 순으로 확인합니다.")
     st.markdown("---")
@@ -307,7 +383,7 @@ if target_agents == "HISTORY":
     if not records:
         st.markdown(
             '<div class="response-box" style="color:#9ca3af; font-style:italic;">아직 기록이 없습니다.</div>',
-            unsafe_allow_html=True,
+            unsafe_allow_html = True,
         )
     elif st.session_state.history_detail is not None:
         record = st.session_state.history_detail
@@ -349,10 +425,10 @@ if target_agents == "HISTORY":
 # ════════════════════════════════════════════════════════
 else:
     st.title(f"{tab_icon} {tab_name}")
-    if target_agents is None:
+    if target_agent is None:
         st.markdown("질문을 입력하면 적절한 에이전트를 자동으로 선택하여 분석합니다.")
     else:
-        st.markdown(f"`{'  '.join(target_agents)}` 만 실행합니다.")
+        st.markdown(f"`{target_agent}` 만 실행합니다.")
     st.markdown("---")
 
     st.markdown("### 📝 입력")
@@ -422,7 +498,7 @@ else:
                         query=query,
                         ticker=ticker.strip() if ticker.strip() else None,
                         document_path=document_path,
-                        target_agents=target_agents,
+                        target_agent=target_agent,
                     )
                     render_response(result)
                     save_history(tab_name, query, ticker.strip() or None, result)

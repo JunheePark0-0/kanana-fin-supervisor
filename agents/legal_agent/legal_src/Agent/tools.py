@@ -455,7 +455,7 @@ def rerank_contexts(combined_queries: QueryList, all_contexts: ContextList) -> C
         if web_scores:
             print(f"🔍 Rerank 후 웹 점수: min={min(web_scores):.2f}, max={max(web_scores):.2f}, avg={sum(web_scores)/len(web_scores):.2f}")
 
-        return ContextList(list_contexts=reranked)
+        return ContextList(list_contexts = reranked)
 
     except Exception as e:
         print(f"Error in rerank_contexts: {e}")
@@ -472,8 +472,8 @@ def generate_answer(extended_query: str, contexts: ContextList, extracted_issues
         print(f"⚠️ 컨텍스트가 {original_count}개로 많아 상위 {max_contexts}개만 사용합니다.")
         sorted_contexts = sorted(
             contexts.list_contexts,
-            key=lambda x: (x.relevance_score, -x.rank if x.rank is not None else 0),
-            reverse=True
+            key = lambda x: (x.relevance_score, -x.rank if x.rank is not None else 0),
+            reverse = True
         )
         contexts = ContextList(list_contexts = sorted_contexts[:max_contexts])
     
@@ -485,18 +485,27 @@ def generate_answer(extended_query: str, contexts: ContextList, extracted_issues
     context_count = len(contexts.list_contexts)
     min_required = max(4, int(context_count * 0.7))  # 최소 70% 이상 활용
     
-    response = call_kanana_structured(
-        system_prompt = system_prompt,
-        user_input = {
-            "extended_query": extended_query, 
-            "contexts": str(contexts), 
-            "extracted_issues": str(extracted_issues) if extracted_issues else "없음 (Query_Only 모드)",
-            "context_count": str(context_count),
-            "min_required_docs": str(min_required)},
-        output_schema = AnswerOutput,
-        max_new_tokens = LegalConfig.KANANA_MAX_NEW_TOKENS
-    )
-    
+    try:
+        response = call_kanana_structured(
+            system_prompt = system_prompt,
+            user_input = {
+                "extended_query": extended_query, 
+                "contexts": str(contexts), 
+                "extracted_issues": str(extracted_issues) if extracted_issues else "없음 (Query_Only 모드)",
+                "context_count": str(context_count),
+                "min_required_docs": str(min_required)},
+            output_schema = AnswerOutput,
+            max_new_tokens = LegalConfig.KANANA_MAX_NEW_TOKENS
+        )
+    except Exception as e:
+        print(f"Error in generate_answer: {e}")
+        response = AnswerOutput(
+            input_type = "Error",
+            answer = f"답변 생성에 실패했습니다: {e}",
+            source = [],
+            risk_summary = "JSON 파싱 실패",
+            confidence_score = 0.0
+        )
     # 참고자료 검증...
     if "## 참고자료" not in response.answer:
         print("⚠️ 경고: 참고자료 섹션이 없습니다. 자동으로 추가합니다.")
@@ -578,7 +587,8 @@ def retry_answer(extended_query: str, contexts: ContextList, extracted_issues: O
     contexts = truncate_context_texts(contexts, max_text_length = 2000)
     
     system_prompt = load_prompt("retry_answer_prompt")
-    response = call_kanana_structured(
+    try:
+        response = call_kanana_structured(
         system_prompt = system_prompt,
         user_input = {
             "extended_query": extended_query, 
@@ -586,7 +596,16 @@ def retry_answer(extended_query: str, contexts: ContextList, extracted_issues: O
             "extracted_issues": str(extracted_issues) if extracted_issues else "없음 (Query_Only 모드)",
             "previous_answer": str(previous_answer), 
             "feedback": str(feedback)},
-        output_schema = AnswerOutput,
-        max_new_tokens = 1024
-    )
+            output_schema = AnswerOutput,
+            max_new_tokens = 1024
+        )
+    except Exception as e:
+        print(f"Error in retry_answer: {e}")
+        response = AnswerOutput(
+            input_type = "Error",
+            answer = f"답변 재생성에 실패했습니다: {e}",
+            source = [],
+            risk_summary = "JSON 파싱 실패",
+            confidence_score = 0.0
+        )
     return response

@@ -2,7 +2,7 @@ from typing import List, Dict, Optional, Any, Literal
 import yaml
 import os
 import json
-from config import BaseConfig as Config
+from utils.ticker_map import TICKER_MAP
 from utils.kanana_pipeline import call_kanana, call_kanana_structured
 
 def load_prompt(prompt_name: str) -> str:
@@ -19,15 +19,14 @@ def load_prompt(prompt_name: str) -> str:
 
 def extract_company_name(query: str, comp_list: List[str]) -> str:
     """
-    사용자 질문에서 기업 이름을 추출하는 함수 (config에서 comp_list 받아오도록 설정해야 함)
+    사용자 질문에서 기업 이름을 추출하는 함수
     """
-    extract_company_name_prompt = load_prompt("extract_company_name_prompt")
-    response = call_kanana(
-        extract_company_name_prompt,
-        user_input = {"query": query, "comp_list": comp_list}
-    )
-    return response
+    query_lower = query.lower()
+    for comp in comp_list:
+        if comp.lower() in query_lower:
+            return comp
+    return None
 
 def map_comp_name_to_ticker(comp_name: str) -> str:
     """기업 이름을 티커로 매핑하는 함수"""
-    return Config.TICKER_MAP.get(comp_name, "")
+    return TICKER_MAP.get(comp_name, "")

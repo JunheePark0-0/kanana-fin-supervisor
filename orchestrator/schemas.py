@@ -1,9 +1,9 @@
-from typing import List, Dict, Optional, Literal, Any
-from pydantic import BaseModel, Field, ConfigDict
+from typing import List, Optional, Literal
+from pydantic import BaseModel, Field, field_validator
 
 class UserInput(BaseModel):
     """사용자 입력 형식"""
-    query: str = Field(..., description = "The user's question")
+    query: str = Field(default = "", description = "The user's question")
     document_path: Optional[str] = Field(None, description = "The path of the document (ex. PDF)")
     ticker: Optional[str] = Field(None, description = "The ticker of the company")
 
@@ -14,11 +14,18 @@ class AgentRequest(BaseModel):
     selected_agents: List[AgentName] = Field(..., description = "The list of selected agents")
     reason: str = Field(..., description = "The reason for selecting the agents")
 
+    @field_validator("selected_agents", mode = "before")
+    @classmethod
+    def wrap_string(cls, v):
+        if isinstance(v, str):
+            return [v]
+        return v
+
 class AgentResponse(BaseModel):
     """각 에이전트의 결과 형식"""
     agent_name: AgentName = Field(..., description = "The name of the agent")
     answer: str = Field(..., description = "The answer from each agent")
-    sources: List[str] = Field(..., description = "The sources used when generating the answer")
+    sources: List[str] = Field(default_factory = list, description = "The sources used when generating the answer")
 
     def _to_report_text(self) -> str:
         """Report Agent의 결과를 텍스트로 변환하는 함수"""

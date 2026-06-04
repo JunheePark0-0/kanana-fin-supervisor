@@ -1,8 +1,9 @@
-﻿import sys
+import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from stock_src.Agent.graph import agent_debate_graph
+from stock_src.Agent.functions import unique_sources
 from stock_config import StockConfig
 from utils.kanana_pipeline import get_kanana_pipeline
 from utils.log_paths import get_agent_log_run_dir
@@ -50,12 +51,19 @@ async def main(ticker : str):
         print(f"🏆 {ticker} 투자 분석 최종 합의안")
         print("="*50)
 
-        return result.get("final_consensus", "합의안 도출에 실패했습니다..")
+        final_report = result.get("final_consensus", "합의안 도출에 실패했습니다..")
+        return {
+            "final_report": final_report,
+            "sources": unique_sources(result.get("sources", [])),
+        }
 
     except Exception as e:
         print(f"❌ 실행 중 오류 발생: {repr(e)}")
         print(traceback.format_exc())
-        return f"에러 발생: {str(e)}"
+        return {
+            "final_report": f"에러 발생: {str(e)}",
+            "sources": [],
+        }
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = "Multi Agent Debate")
