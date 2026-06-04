@@ -3,17 +3,18 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import dotenv
 dotenv.load_dotenv()
+from pydantic import Field
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from orchestrator.graph import orchestrator_graph
 from orchestrator.states import OrchestratorState
-from orchestrator.schemas import FinalResponse, UserInput
+from orchestrator.schemas import FinalResponse, UserInput, AgentName
 from utils.kanana_pipeline import ensure_kanana_loaded
 
 app = FastAPI(
@@ -33,6 +34,13 @@ app.add_middleware(
 jobs: Dict[str, Any] = {}
 graph = orchestrator_graph()
 
+# UserInput 확장: target_agent 추가
+class UserInputWithTarget(UserInput):
+    target_agent: Optional[AgentName] = Field(
+        None,
+        description = "The agent name that the user wants to use"
+    )
+
 @app.on_event("startup")
 async def startup_event() -> None:
     print("🔄 Orchestrator startup: Kanana 모델 선로드 중...")
@@ -45,22 +53,31 @@ async def health() -> dict:
     return {"status": "ok"}
 
 
-@app.post("/ask", response_model=FinalResponse)
-async def ask(user_input: UserInput) -> FinalResponse:
+@app.post("/ask", response_model = FinalResponse)
+async def ask(user_input: UserInputWithTarget) -> FinalResponse:
     job_id = str(uuid.uuid4())
     jobs[job_id] = {"job_id": job_id, "status": "pending", "input": user_input.model_dump()}
 
     try:
         jobs[job_id]["status"] = "processing"
+
+        base_input = UserInput(
+            query = user_input.query,
+            document_path = user_input.document_path,
+            ticker = user_input.ticker,
+        )
+
         initial_state = OrchestratorState(
-            user_input = user_input,
-            job_id = job_id
+            user_input = base_input,
+            job_id = job_id,
+            target_agent = user_input.target_agent,
         )
         result = await graph.ainvoke(initial_state) 
 
         final_response = result.get("final_response")
         if final_response is None:
             raise ValueError("오케스트레이터가 최종 응답을 생성하지 못했습니다.")
+            
         jobs[job_id]["status"] = "completed"
         jobs[job_id]["result"] = final_response._to_final_report()
         return final_response
