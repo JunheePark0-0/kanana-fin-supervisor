@@ -5,7 +5,9 @@ import os
 from pathlib import Path
 from datetime import datetime
 import json
+import re
 import tempfile
+import markdown as md_lib
 
 from orchestrator.schemas import FinalResponse
 
@@ -56,46 +58,29 @@ st.markdown("""
         font-size: 0.8rem !important;
     }
 
-    /* ── 버튼 (기본: 분석 실행용 회색) ── */
+    /* ── 버튼 (기본 스타일: 색/모양만 지정, 글자는 각 버튼 코드에서 직접 지정) ── */
     .stButton > button {
-    background: #6b7280 !important;
-    border: none !important;
-    border-radius: 7px !important;
-    padding: 0.45rem 1.5rem !important;
-    font-weight: 600 !important;
-    font-size: 0.82rem !important;
-    width: 100%;
-    color: transparent !important;
-    position: relative;
-    }
-
-    .stButton > button p,
-    .stButton > button span {
-        color: transparent !important;
-    }
-
-    .stButton > button::after {
-        content: "🚀 분석 실행";
+        background: #6b7280 !important;
+        border: none !important;
+        border-radius: 7px !important;
+        padding: 0.45rem 1.5rem !important;
+        font-weight: 600 !important;
+        font-size: 0.82rem !important;
+        width: 100%;
         color: #ffffff !important;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        white-space: nowrap;
+    }
+    .stButton > button p,
+    .stButton > button span,
+    .stButton > button div {
+        color: #ffffff !important;
     }
 
-    .stSidebar .stButton > button {
+    .stSidebar .stButton > button,
+    .stSidebar .stButton > button p,
+    .stSidebar .stButton > button span,
+    .stSidebar .stButton > button div {
         background: transparent !important;
         color: #4b5563 !important;
-        position: static;
-    }
-
-    .stSidebar .stButton > button p,
-    .stSidebar .stButton > button span {
-        color: #4b5563 !important;
-    }
-
-    .stSidebar .stButton > button::after {
-        content: none;
     }
 
     /* ── 응답 박스 ── */
@@ -216,6 +201,18 @@ if "history_detail" not in st.session_state:
 
 
 # ── 헬퍼 함수들 ──────────────────────────────────────────────
+def normalize_tilde(text: str) -> str:
+    """물결표(~)가 여러 개 연속되어도 항상 1개로 통일 (마크다운 취소선 오작동 방지)"""
+    if not text:
+        return text
+    return re.sub(r"~+", "~", text)
+
+def markdown_to_html(text: str) -> str:
+    """마크다운 텍스트(##, **, - 등)를 HTML로 변환"""
+    if not text:
+        return text
+    return md_lib.markdown(text, extensions=["extra"])
+
 def save_history(tab_name, query, ticker, result):
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     record = {
@@ -307,7 +304,8 @@ def render_sources(result: dict):
 
 
 def render_response(result: dict):
-    summary = result.get("summary", "").replace("~~", "~")  # html.escape 제거
+    summary = normalize_tilde(result.get("summary", "")) 
+    summary = markdown_to_html(summary)
     all_answers = result.get("all_answers", [])
 
     # 요약 박스
@@ -322,13 +320,13 @@ def render_response(result: dict):
         for agent in all_answers:
             name = html.escape(str(agent.get("agent_name", "")))
             body = agent.get("answer", "") or "_답변 없음_"
-            body = body.replace("~~", "~")
-            body_escaped = html.escape(body)
+            body = normalize_tilde(body)
+            body = markdown_to_html(body)
             st.markdown(
                 f"""
                 <div class="agent-box">
                     <div class="agent-name">🤖 {name}</div>
-                    <div style="white-space: pre-wrap;">{body_escaped}</div>
+                    <div style="white-space: pre-wrap;">{body}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -416,7 +414,7 @@ if target_agent == "HISTORY":
                     </div>
                     """, unsafe_allow_html=True)
                 with col2:
-                    if st.button("보기", key=f"detail_{record['timestamp']}"):
+                    if st.button("🔍 결과 확인", key=f"detail_{record['timestamp']}"):
                         st.session_state.history_detail = record
                         st.rerun()
 

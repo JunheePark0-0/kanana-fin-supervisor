@@ -49,6 +49,7 @@ python-multipart>=0.0.9
 
 # Streamlit
 streamlit>=1.35.0
+markdown>=3.5
 
 #############################################
 ### Legal Agent 
