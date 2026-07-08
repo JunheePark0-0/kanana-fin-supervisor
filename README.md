@@ -111,13 +111,13 @@ input_router → query_rewriter
                                                               │
                                                context_evaluator
                                                     │
-                             ENOUGH ←──────────────┤
-                               │               NOT_ENOUGH → web_searcher → context_filter
-                               │                                              → context_reranker
-                               ▼                                              → context_evaluator
-                        answer_generator → answer_evaluator
-                                                  │
-                               ENOUGH ──→ END    NOT_ENOUGH → answer_regenerator ──→ answer_evaluator
+                              ENOUGH ←──────────────┤
+                                │               NOT_ENOUGH → web_searcher → context_filter
+                                │                                              → context_reranker
+                                ▼                                              → context_evaluator
+                         answer_generator → answer_evaluator
+                                                    │
+                                ENOUGH ──→ END    NOT_ENOUGH → answer_regenerator ──→ answer_evaluator
 ```
 
 ---
@@ -135,15 +135,15 @@ query_rewrite → query_structuring → retrieve_and_rerank → gen_internal_ans
                                                                      │
                                                     hallucination_check_internal
                                                            │
-                             retry ←──────────────────────┤
-                               │                      to_external ↓
-                         query_rewrite_retry        web_search_finance
-                               │                          │
-                         query_structuring         has_results → gen_final_answer → hallucination_check_final
-                                                                                           │
-                                                  pass → format_answer → END    regenerate → gen_final_answer
-                                                                                re_retrieve → retrieve_and_rerank
-                                                  cannot_answer → END
+                              retry ←──────────────────────┤
+                                │                      to_external ↓
+                          query_rewrite_retry        web_search_finance
+                                │                          │
+                          query_structuring         has_results → gen_final_answer → hallucination_check_final
+                                                                                            │
+                                                   pass → format_answer → END    regenerate → gen_final_answer
+                                                                                 re_retrieve → retrieve_and_rerank
+                                                   cannot_answer → END
 ```
 
 ---
@@ -157,10 +157,10 @@ query_rewrite → query_structuring → retrieve_and_rerank → gen_internal_ans
 **내부 LangGraph 워크플로우**:
 
 ```
-              ┌──────────────────────────┐
+              ┌───────────────────────────┐
               │      RouterAgent          │
-              │ (task 유형에 따라 분기)   │
-              └────────────┬──────────────┘
+              │ (task 유형에 따라 분기)    │
+              └─────────────┬─────────────┘
                             ▼
 node_upstage_parse → node_select_metrics → node_llm_extract
                                                   │
@@ -187,7 +187,7 @@ node_upstage_parse → node_select_metrics → node_llm_extract
     ▼
 [2단계] Multi-Agent Debate (stock_src/Agent/, agent_debate_graph)
 
-   Optimist Agent ──┐
+   Optimist Agent ───┐
    (낙관론 제시)      │
                      ├─→ 토론 (최대 6턴, 번갈아 발언) ─→ 합의 노드 ─→ END
    Pessimist Agent ──┘                                (최종 투자 리포트 생성)
@@ -208,17 +208,17 @@ input_router
     │
     ├─ finance ──→ multi_query_generator → check_availability → rag_searcher
     │                                                                    │
-    └─ general/off_topic ──→ direct_answer ──→ END                      │
+    └─ general/off_topic ──→ direct_answer ──→ END                       │
                                                               context_evaluator
                                                                     │
-                                              Enough ─────────────┤
-                                                │             Not_Enough → web_searcher
-                                                │                                │
-                                                │                        context_filter
-                                                │                                │
-                                                │                        context_reranker
-                                                │                                │
-                                                └───────── (병합) ────────────────┘
+                                                Enough ─────────────┤
+                                                 │             Not_Enough → web_searcher
+                                                 │                                │
+                                                 │                        context_filter
+                                                 │                                │
+                                                 │                        context_reranker
+                                                 │                                │
+                                                 └───────── (병합) ────────────────┘
                                                                     │
                                                         answer_generator
                                                                     │
@@ -241,8 +241,8 @@ input_router
 
 ```json
 {
-  "question": "삼성전자 최근 실적 발표 요약해줘",
-  "ticker": "005930",
+  "question": "엔비디아 최근 실적 발표 요약해줘",
+  "ticker": "NVDA",
   "agents": ["news_agent"],
   "document_base64": null,
   "compare_mode": null
@@ -280,7 +280,7 @@ input_router
 
 ### Stock Agent 탭
 ```
-입력 Ticker: "005930" (삼성전자)
+입력 Ticker: "NVDA" (엔비디아)
 → 흐름: 공시 크롤링 → Optimist/Pessimist 최대 6턴 토론 → 합의
 → 출력: Buy/Sell/Hold 의견 + 근거 요약 + 리스크 요인
 ```
@@ -402,60 +402,60 @@ streamlit run app.py
 
 ```
 Kanana_Agent/
-├── app.py                  # Streamlit 프론트엔드
-├── main.py                 # FastAPI 백엔드
-├── config.py               # 전역 설정 (BaseConfig)
-├── agent_setup.py          # 모델·데이터 초기화
-├── setup_and_run.sh        # 원클릭 설치·실행 스크립트
-├── run.sh                  # 서버 실행 스크립트
-├── requirements.txt        # Python 의존성
-├── .env.example             # 환경변수 예시
+├── app.py                     # Streamlit 프론트엔드
+├── main.py                    # FastAPI 백엔드
+├── config.py                  # 전역 설정 (BaseConfig)
+├── agent_setup.py             # 모델·데이터 초기화
+├── setup_and_run.sh           # 원클릭 설치·실행 스크립트
+├── run.sh                     # 서버 실행 스크립트
+├── requirements.txt           # Python 의존성
+├── .env.example               # 환경변수 예시
 │
-├── orchestrator/            # 오케스트레이터
-│   ├── graph.py             # LangGraph 그래프 정의
-│   ├── nodes.py              # Routing / Run Agents / Summarize 노드
-│   ├── prompts.yaml          # 라우팅·요약 프롬프트
-│   ├── schemas.py            # Pydantic 스키마
-│   ├── states.py             # LangGraph 상태 정의
-│   ├── functions.py          # 헬퍼 함수
-│   └── converters.py         # 에이전트 출력 변환기
+├── orchestrator/              # 오케스트레이터
+│   ├── graph.py               # LangGraph 그래프 정의
+│   ├── nodes.py               # Routing / Run Agents / Summarize 노드
+│   ├── prompts.yaml           # 라우팅·요약 프롬프트
+│   ├── schemas.py             # Pydantic 스키마
+│   ├── states.py              # LangGraph 상태 정의
+│   ├── functions.py           # 헬퍼 함수
+│   └── converters.py          # 에이전트 출력 변환기
 │
 ├── agents/
-│   ├── legal_agent/          # 법률·계약 에이전트
+│   ├── legal_agent/           # 법률·계약 에이전트
 │   │   ├── main.py
 │   │   ├── legal_config.py
 │   │   ├── legal_src/
-│   │   │   ├── Agent/        # graph, nodes, prompts, schemas, states, tools
-│   │   │   └── RAG/          # 벡터 DB, 임베딩, 검색
+│   │   │   ├── Agent/         # graph, nodes, prompts, schemas, states, tools
+│   │   │   └── RAG/           # 벡터 DB, 임베딩, 검색
 │   │   └── legal_utils/
 │   │
-│   ├── news_agent/           # 뉴스 검색 에이전트
+│   ├── news_agent/            # 뉴스 검색 에이전트
 │   │   ├── main.py
 │   │   ├── news_config.py
 │   │   ├── graph/             # graph, nodes, edges, state
 │   │   ├── embeddings.py
 │   │   └── vectorstore.py
 │   │
-│   ├── report_agent/         # 재무제표 분석 에이전트
+│   ├── report_agent/          # 재무제표 분석 에이전트
 │   │   ├── main.py
 │   │   ├── nodes.py           # LangGraph 노드 + UpstageDocumentParseClient
 │   │   ├── classes.py         # 데이터 클래스
 │   │   ├── router.py          # RouterAgent
 │   │   └── report_config.py
 │   │
-│   ├── stock_agent/          # 주식 투자 분석 에이전트
+│   ├── stock_agent/           # 주식 투자 분석 에이전트
 │   │   ├── main.py
 │   │   ├── stock_config.py
 │   │   └── stock_src/
-│   │       ├── Agent/          # 토론 그래프, Optimist/Pessimist 노드
-│   │       └── Crawling/       # 공시 크롤러
+│   │       ├── Agent/         # 토론 그래프, Optimist/Pessimist 노드
+│   │       └── Crawling/      # 공시 크롤러
 │   │
-│   └── trend_agent/          # 거시경제 트렌드 에이전트
+│   └── trend_agent/           # 거시경제 트렌드 에이전트
 │       ├── main.py            # 전체 LangGraph 워크플로우 포함
 │       ├── trend_config.py
 │       └── database.py
 │
-├── utils/                    # 공유 유틸리티
+├── utils/                     # 공유 유틸리티
 │   ├── kanana_pipeline.py     # Kanana 모델 싱글턴 로더·추론 래퍼
 │   ├── ticker_map.py          # 기업명 → Ticker 매핑
 │   ├── agent_keywords.py      # 에이전트별 라우팅 키워드
@@ -464,7 +464,7 @@ Kanana_Agent/
 │   ├── selenium_runtime.py    # Selenium 런타임 설정
 │   └── config_bootstrap.py    # 에이전트별 설정 부트스트랩
 │
-├── models/                   # 다운로드된 모델 (자동 생성)
+├── models/                    # 다운로드된 모델 (자동 생성)
 │   ├── Kanana/
 │   └── bge-m3/
 │
