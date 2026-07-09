@@ -321,25 +321,40 @@ USER_EMAIL=your_email@example.com         # Selenium 크롤링 인증 (Stock Age
 
 ---
 
+## 성능 측정 결과 (참고)
+
+> 아래 수치는 단일 GPU 환경(VRAM 약 24GB)에서 각 에이전트를 **1회씩** 측정한 결과입니다.
+> 질문 내용, 반복 횟수, 하드웨어 사양, 외부 API 응답 속도에 따라 실제 값은 크게 달라질 수 있습니다.
+
+| 에이전트 | 응답 시간 | VRAM 증가량 | 비고 |
+|----------|-----------|-------------|------|
+| Stock Agent | 약 313초 | +2,696 MB | 실시간 주가·뉴스 크롤링 포함 |
+| News Agent | 약 192초 | +1,070 MB | 웹 크롤링 + Selenium 포함 |
+| Trend Agent | 약 14초 | +732 MB | 내부 벡터 DB 검색 |
+| Report Agent | 약 71초 | +1,306 MB | PDF 파싱(Upstage API) 포함 |
+| Legal Agent | 약 176초 | +6,996 MB | 판례 검색 + LLM 추론 |
+| Orchestrator (복합) | 약 298초 | — | News + Stock 에이전트 조합 |
+
 ## 실행 가이드
 
 ### 방법 1: 자동 설치 스크립트 (처음 실행 시)
 
-저장소를 클론하고 전체 환경을 자동으로 설정합니다.
+저장소를 클론한 뒤 자동 설치 스크립트를 실행하면 전체 환경이 설정됩니다.
 
 ```bash
+git clone https://github.com/JunheePark0-0/kanana-fin-supervisor.git
+cd Kanana_Agent
 chmod +x setup_and_run.sh
 ./setup_and_run.sh
 ```
 
 **스크립트 실행 순서:**
 
-1. **저장소 클론** — GitHub에서 프로젝트를 `app/` 디렉터리로 클론
-2. **가상환경 생성** — Python `venv` 생성 및 활성화
-3. **패키지 설치** — `requirements.txt` 기반 의존성 설치
-4. **`.env` 파일 확인** — 없으면 `.env.example`을 복사 후 사용자 입력 대기
-5. **모델·데이터 준비** — `agent_setup.py` 실행 (아래 참고)
-6. **서버 실행** — `run.sh` 호출 (백엔드 + 프론트엔드)
+1. **가상환경 생성** — Python `venv` 생성 및 활성화
+2. **패키지 설치** — `requirements.txt` 기반 의존성 설치
+3. **`.env` 파일 확인** — 없으면 `.env.example`을 복사 후 사용자 입력 대기
+4. **모델·데이터 준비** — `agent_setup.py` 실행 (아래 참고)
+5. **서버 실행** — `run.sh` 호출 (백엔드 + 프론트엔드)
 
 ### 방법 2: 이미 클론된 경우 (재실행)
 
