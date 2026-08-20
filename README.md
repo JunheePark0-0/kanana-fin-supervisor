@@ -333,13 +333,6 @@ USER_EMAIL=your_email@example.com         # Selenium 크롤링 인증 (Stock Age
 | Legal Agent | 약 176초 | +6,996 MB | 판례 검색 + LLM 추론 |
 | Orchestrator (복합) | 약 298초 | — | News + Stock 에이전트 조합 |
 
-측정 도구 `benchmark.py`를 포함하고 있으며, 직접 실행해 재현할 수 있습니다.
-
-```bash
-source venv/bin/activate
-python benchmark.py
-```
-
 ---
 
 ## 실행 가이드
