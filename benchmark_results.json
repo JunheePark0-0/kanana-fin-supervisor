@@ -1,0 +1,75 @@
+[
+  {
+    "label": "Stock — Nvidia 주가",
+    "elapsed_sec": 312.838,
+    "status_code": 200,
+    "vram_before_mb": 4621.0,
+    "vram_after_mb": 7317.0,
+    "vram_delta_mb": 2696.0,
+    "agents_used": [
+      "Stock Agent"
+    ],
+    "error": ""
+  },
+  {
+    "label": "News — 반도체 뉴스",
+    "elapsed_sec": 192.299,
+    "status_code": 200,
+    "vram_before_mb": 7317.0,
+    "vram_after_mb": 8387.0,
+    "vram_delta_mb": 1070.0,
+    "agents_used": [
+      "News Agent"
+    ],
+    "error": ""
+  },
+  {
+    "label": "Trend — AI 투자 트렌드",
+    "elapsed_sec": 14.277,
+    "status_code": 200,
+    "vram_before_mb": 8387.0,
+    "vram_after_mb": 9119.0,
+    "vram_delta_mb": 732.0,
+    "agents_used": [
+      "Trend Agent"
+    ],
+    "error": ""
+  },
+  {
+    "label": "Report — report.pdf 분석",
+    "elapsed_sec": 70.866,
+    "status_code": 200,
+    "vram_before_mb": 9119.0,
+    "vram_after_mb": 10425.0,
+    "vram_delta_mb": 1306.0,
+    "agents_used": [
+      "Report Agent"
+    ],
+    "error": ""
+  },
+  {
+    "label": "Legal — 개인정보 유출 판례 검색",
+    "elapsed_sec": 176.47,
+    "status_code": 200,
+    "vram_before_mb": 10425.0,
+    "vram_after_mb": 17421.0,
+    "vram_delta_mb": 6996.0,
+    "agents_used": [
+      "Legal Agent"
+    ],
+    "error": ""
+  },
+  {
+    "label": "Orchestrator — 종합 질문 (라우팅 포함)",
+    "elapsed_sec": 297.851,
+    "status_code": 200,
+    "vram_before_mb": 17421.0,
+    "vram_after_mb": 17431.0,
+    "vram_delta_mb": 10.0,
+    "agents_used": [
+      "News Agent",
+      "Stock Agent"
+    ],
+    "error": ""
+  }
+]
