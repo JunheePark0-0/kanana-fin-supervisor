@@ -23,7 +23,7 @@ routing_prompt:
 
     [선택 가이드 — 문서가 없을 때만 적용]
     - 특정 기업이 언급되면 → News Agent 반드시 선택
-    - ticker가 있고 투자·주가·전망 관련이면 → Stock Agent 선택
+    - ticker가 있으면 → Stock Agent 반드시 선택
     - 거시경제(금리·환율·업황·경기)가 언급되면 → Trend Agent 선택
     - 법률·계약·규제·소송이 언급되면 → Legal Agent 선택 (document_path 없을 때)
     - 질문이 광범위하거나 복합적이면 → 해당하는 에이전트 모두 선택
@@ -35,7 +35,7 @@ routing_prompt:
 
     - "엔비디아 실적 등 최근 뉴스 알려줘" (ticker = NVDA, document_path 없음)
       → ["News Agent", "Stock Agent"]
-      # 기업명 언급 → News Agent 필수, ticker 있고 주가 관련 → Stock Agent
+      # 기업명 언급 → News Agent 필수, ticker 입력 → Stock Agent 필수
 
     - "금리 인상이 반도체 업황에 미치는 영향은?" (ticker 없음, document_path 없음)
       → ["Trend Agent", "News Agent"]

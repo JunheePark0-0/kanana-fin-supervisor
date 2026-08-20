@@ -93,6 +93,35 @@ def clean_fake_urls(text, valid_urls):
     return re.sub(pattern, replace, text)
 
 
+def headings_to_bold(text: str) -> str:
+    """마크다운 헤더(#, ## 등)를 볼드만 남기도록 변환"""
+    if not text:
+        return text
+
+    def _replace(match: re.Match) -> str:
+        title = match.group(1).strip().rstrip("#").strip()
+        if not title:
+            return match.group(0)
+        if title.startswith("**") and title.endswith("**"):
+            return title
+        return f"**{title}**"
+
+    # ## 제목 / ##제목 / 앞에 공백이 있는 헤더까지 변환
+    text = re.sub(
+        r"^[ \t]{0,3}#{1,6}[ \t]+(.+?)[ \t]*#*[ \t]*$",
+        _replace,
+        text,
+        flags=re.MULTILINE,
+    )
+    text = re.sub(
+        r"^[ \t]{0,3}#{1,6}([^#\s].+?)[ \t]*#*[ \t]*$",
+        _replace,
+        text,
+        flags=re.MULTILINE,
+    )
+    return text
+
+
 def clean_report_phrases(text: str) -> str:
     patterns = [
         r"\d{4}년 \d{1,2}월 \d{1,2}일에 보도된 기사에 따르면[,.]?\s*",

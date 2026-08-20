@@ -39,15 +39,15 @@ class ConsensusOutput(BaseModel):
         report = []
         report.append("**토론 흐름 요약**")
         if self.key_issues:
-            report.append(f"[핵심 쟁점]\n{self.key_issues}")
+            report.append(f"**[핵심 쟁점]**\n{self.key_issues}")
         if self.pros:
-            report.append(f"[핵심 기회 요인 (Pros)]\n{self.pros}")
+            report.append(f"**[핵심 기회 요인 (Pros)]**\n{self.pros}")
         if self.cons:
-            report.append(f"[핵심 리스크 요인 (Cons)]\n{self.cons}")
+            report.append(f"**[핵심 리스크 요인 (Cons)]**\n{self.cons}")
 
         report.append(f"**최종 투자 의견:** {self.recommendation}")
         if self.conclusion:
-            report.append(f"[종합 결론]\n{self.conclusion}")
+            report.append(f"**[종합 결론]**\n{self.conclusion}")
         return "\n\n".join(report) if report else "합의안 도출에 실패했습니다."
 
 

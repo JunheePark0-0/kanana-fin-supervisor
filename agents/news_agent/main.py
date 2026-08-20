@@ -15,6 +15,7 @@ from graph.nodes import init_runtime
 from utils.kanana_pipeline import get_kanana_model
 from utils.log_paths import get_agent_log_run_dir
 from utils.qa_log import append_qa_log
+from utils.helpers import headings_to_bold
 
 def main():
     if NewsConfig.SKIP_QDRANT:
@@ -74,7 +75,7 @@ def main():
         q = input("\n질문> ").strip()
         if q.lower() in {"exit", "quit"}:
             break
-        result = app.invoke({"question": q})
+        result = _sanitize_news_result(app.invoke({"question": q}))
         answer = result.get("final_answer", "답변이 생성되지 않았습니다.")
         if qa_log_path:
             append_qa_log(
@@ -87,6 +88,16 @@ def main():
                 },
             )
         print("\n" + answer)
+
+
+def _sanitize_news_result(result: dict) -> dict:
+    if not isinstance(result, dict):
+        return result
+    for key in ("final_answer", "internal_answer"):
+        value = result.get(key)
+        if isinstance(value, str) and value:
+            result[key] = headings_to_bold(value)
+    return result
 
 
 _news_app = None
@@ -131,7 +142,7 @@ async def news_agent_main(query: str) -> dict:
         log_run_dir = get_agent_log_run_dir(NewsConfig.AGENT_LOG_NAME, new_folder=True)
         qa_log_path = str(log_run_dir / "news_qa_log.jsonl")
 
-    result = await app.ainvoke({"question": query})
+    result = _sanitize_news_result(await app.ainvoke({"question": query}))
     if qa_log_path:
         append_qa_log(
             qa_log_path,

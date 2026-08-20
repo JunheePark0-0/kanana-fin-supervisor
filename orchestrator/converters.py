@@ -48,6 +48,45 @@ def _strip_stock_references(answer: str) -> str:
     return answer.split(marker, 1)[0].strip() if marker in answer else answer
 
 
+def _markdown_headings_to_bold(text: str) -> str:
+    """#, ## 같은 마크다운 헤더를 볼드로만 변환"""
+    if not text:
+        return text
+
+    def _replace(match: re.Match) -> str:
+        title = match.group(1).strip().rstrip("#").strip()
+        if not title:
+            return match.group(0)
+        if title.startswith("**") and title.endswith("**"):
+            return title
+        return f"**{title}**"
+
+    text = re.sub(
+        r"^[ \t]{0,3}#{1,6}[ \t]+(.+?)[ \t]*#*[ \t]*$",
+        _replace,
+        text,
+        flags=re.MULTILINE,
+    )
+    text = re.sub(
+        r"^[ \t]{0,3}#{1,6}([^#\s].+?)[ \t]*#*[ \t]*$",
+        _replace,
+        text,
+        flags=re.MULTILINE,
+    )
+    return text
+
+
+def _bold_stock_section_labels(text: str) -> str:
+    """[핵심 쟁점], [핵심 요인] 같은 섹션 라벨을 볼드 처리"""
+    if not text:
+        return text
+    return re.sub(
+        r"(?<!\*)(\[[^\]]*(?:쟁점|요인|결론)[^\]]*\])(?!\*)",
+        r"**\1**",
+        text,
+    )
+
+
 def legal_raw_to_agent_response(raw: Any) -> AgentResponse:
     if isinstance(raw, Exception):
         return AgentResponse(
@@ -114,6 +153,7 @@ def news_raw_to_agent_response(raw: Any) -> AgentResponse:
                 sources.append(title)
 
         sources = _unique_str_list(sources)
+        answer = _markdown_headings_to_bold(answer)
     except Exception:
         answer, sources = str(raw), []
 

@@ -137,8 +137,11 @@ async def routing_node(state: OrchestratorState) -> OrchestratorState:
     if "Legal Agent" in selected_agents and not any(kw in query for kw in AGENT_KEYWORDS["Legal Agent"]):
         selected_agents = [a for a in selected_agents if a != "Legal Agent"]
 
-    # Stock Agent: ticker 있고 키워드 있으면 추가
-    if "Stock Agent" not in selected_agents and query_ticker and any(kw in query for kw in AGENT_KEYWORDS["Stock Agent"]):
+    # Stock Agent: ticker 입력이 있으면 무조건 추가
+    if "Stock Agent" not in selected_agents and input_ticker:
+        selected_agents.append("Stock Agent")
+    # ticker가 쿼리에서 추출되고 투자 키워드가 있으면 추가
+    elif "Stock Agent" not in selected_agents and query_ticker and any(kw in query for kw in AGENT_KEYWORDS["Stock Agent"]):
         selected_agents.append("Stock Agent")
 
     # News Agent: 조건 맞으면 추가

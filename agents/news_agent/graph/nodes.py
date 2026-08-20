@@ -9,6 +9,7 @@ from utils.kanana_pipeline import get_kanana_response
 from utils.helpers import (
     clean_fake_urls,
     clean_report_phrases,
+    headings_to_bold,
     resolve_date_hint,
     score_source_reliability,
 )
@@ -233,7 +234,8 @@ def gen_internal_answer(state):
    문서에 명시되지 않은 통계나 연구 결과도 사용 금지입니다.
    불확실한 내용은 반드시 [분석] 태그와 함께 "~로 추정됩니다" 형태로만 서술하세요.
 6. 종합적인 결론을 서두에 배치하고, 근거와 분석을 이후에 서술하세요.
-7. 각 문장 끝에 근거 문서 번호와 날짜를 표기하세요. (예: [1번 문서, 20260108])"""
+7. 각 문장 끝에 근거 문서 번호와 날짜를 표기하세요. (예: [1번 문서, 20260108])
+8. 절대로 #, ## 마크다운 헤더를 사용하지 마세요. 소제목이 필요하면 **볼드**만 사용하세요."""
     else:
         guideline = """1. 문서를 날짜 순으로 읽고, 가장 최신 문서의 내용을 우선 답변하세요.
 2. 최신 문서 기준으로 현황을 서술하고, 이전 문서는 "이전에는 ~였으나"로 보조 서술하세요.
@@ -242,7 +244,8 @@ def gen_internal_answer(state):
 5. 자료에 없는 내용은 "확인되지 않습니다"로 명시하세요.
 6. 각 문장 끝에 근거 문서 번호와 날짜를 표기하세요. (예: [1번 문서, 20260108])
 7. 질문 대상 기업의 정보만 서술하세요.
-   질문이 SK하이닉스라면 삼성전자 실적 수치를 절대 포함하지 마세요."""
+   질문이 SK하이닉스라면 삼성전자 실적 수치를 절대 포함하지 마세요.
+8. 절대로 #, ## 마크다운 헤더를 사용하지 마세요. 소제목이 필요하면 **볼드**만 사용하세요."""
 
     prompt = f"""당신은 전문적인 금융 애널리스트입니다.
 제공된 [뉴스 문서]의 내용만을 바탕으로 [질문]에 답변하세요.
@@ -255,7 +258,7 @@ def gen_internal_answer(state):
 
 [질문]: {question}
 [답변]:"""
-    answer = _llm([{"role": "user", "content": prompt}], max_tokens=1024, temp=0.1).strip()
+    answer = headings_to_bold(_llm([{"role": "user", "content": prompt}], max_tokens=1024, temp=0.1).strip())
     return {
         "internal_answer": answer,
         "internal_context": context,
@@ -515,9 +518,9 @@ def gen_final_answer(state):
 [분량 기준]
 - FACTUAL 답변은 최소 400자 이상 작성하세요.
 - 수치 근거 → 시장 반응 → 향후 전망 순으로 구성하세요.
-- 절대로 ##, ###, #### 마크다운 헤더를 사용하지 마세요. 소제목은 반드시 [시장 반응] 형태로만 표기하세요.
+- 절대로 #, ##, ###, #### 마크다운 헤더를 사용하지 마세요. 소제목이 필요하면 **볼드**만 사용하세요.
 [답변]:"""
-    final = _llm([{"role": "user", "content": prompt}], max_tokens=1024, temp=0.2).strip()
+    final = headings_to_bold(_llm([{"role": "user", "content": prompt}], max_tokens=1024, temp=0.2).strip())
     all_contexts = state.get("all_contexts", [])
     if external_context:
         all_contexts = all_contexts + [external_context]
@@ -674,6 +677,7 @@ def format_answer(state):
     valid_urls = [d.metadata.get("url", "") for d in internal_docs]
     answer = clean_fake_urls(answer, valid_urls)
     answer = clean_report_phrases(answer)
+    answer = headings_to_bold(answer)
 
     # 출처 통합 (내부 DB + 외부 검색 구분 없이)
     sources = []
