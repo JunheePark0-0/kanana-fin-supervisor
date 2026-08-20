@@ -86,7 +86,7 @@ START → [Routing] → [Run Agents] → [Summarize] → END
 | 문서 첨부 + 질문 있음 | Legal Agent |
 | 문서 첨부 + 질문 없음 | Report Agent |
 | ticker만 입력 | Stock Agent |
-| 기업명/인물 언급 | News Agent 필수 포함 |
+| 기업명/인물 언급 | News Agent |
 | 거시경제(금리·환율·업황) 질문 | Trend Agent |
 | 법률·계약·소송 키워드 | Legal Agent |
 | 아무것도 해당 없음 | News Agent (기본값) |
